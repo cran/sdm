@@ -1,10 +1,10 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  Feb. 2015
-# Version 2.0
+# Date :  June 2016
+# Version 2.1
 # Licence GPL v3
 #-------
 .roc <- function(o,p) {
-  th <- as.vector(quantile(p,0:100/100))
+  th <- as.vector(quantile(p,0:100/100,na.rm = TRUE))
   e <- matrix(nrow=length(th),ncol=2)
   colnames(e) <- c('sensitivity','1-specificity')
   
@@ -220,7 +220,7 @@
       }
     } else n <- paste("AUC = ",auc,sep='')
     
-    if (length(x) > 1) n <- paste('Mean ',n,sep='')
+    if (inherits(x,'list') && length(x) > 1) n <- paste('Mean ',n,sep='')
     
     if (length(auc) == 1) {
       legend(x="bottomright",legend=n,lty=1,col=cl[1],cex=dot[['cex']],lwd=dot[['lwd']])
@@ -266,16 +266,19 @@ setMethod("roc", signature(x='sdmModels'),
             wt <- names(x@models[[1]][[1]][[1]]@evaluation)
             
             if (!is.null(wtest)) {
-              if (is.numeric(wtest)) {
-                if (any(wtest %in% 1:3)) wtest <- c("training","dep","indep")[wtest[wtest %in% 1:3]]
-                else wtest <- names(x@models[[1]][[1]][[1]]@evaluation)
-              } else wtest <- .pmatch(wtest,c("training","dep","indep"))
               
-              wtest <- unlist(lapply(wtest,function(x) {
-                if (x == 'dep') 'test.dep'
-                else if (x == 'indep') 'test.indep'
-                else 'training'
-              }))
+              if (is.numeric(wtest)) {
+                if (any(wtest %in% 1:3)) wtest <- c("training","test.dep","test.indep")[wtest[wtest %in% 1:3]]
+                else wtest <- names(x@models[[1]][[1]][[1]]@evaluation)
+              } else {
+                for (i in seq_along(wtest)) {
+                  if (wtest[i] == 'dep') wtest[i] <- 'test.dep'
+                  else if  (wtest[i] == 'indep') wtest[i] <- 'test.indep'
+                }
+                wtest <- .pmatch(wtest,c("training","test.dep","test.indep"))
+              }
+              
+              
               wt <- wtest %in% wt
               if (any(wt)) wtest <- wtest[wt]
               else stop('wtest argument is not properly specified!')

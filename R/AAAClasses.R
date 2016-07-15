@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  April 2016
-# Version 3.2
+# Date :  July 2016
+# Version 3.4
 # Licence GPL v3
 
 
@@ -1081,16 +1081,29 @@ setRefClass(".workload",
                   if (!inherits(ev, "try-error")) mo@evaluation[['training']] <- ev
                   else mo@errorLog[['evaluation']][['training']] <- ev
                   
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['training']] <- vi
+                  else mo@errorLog[['varImportance']][['training']] <- vi
+                  
+                  
                   pred.par[[2]] <- dt[.self$replicates[[sp]][[rID]][[3]],]
                   ev <- try(evaluates(pred.par[[2]][,sp],pred(pred.par),distribution=.self$setting@distribution[sp]),silent=TRUE)
                   if (!inherits(ev, "try-error")) mo@evaluation[['test.dep']] <- ev
                   else mo@errorLog[['evaluation']][['test.dep']] <- ev
+                  
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['test.dep']] <- vi
+                  else mo@errorLog[['varImportance']][['test.dep']] <- vi
                   
                   
                   pred.par[[2]] <- .self$generateParams(list(dtype),sp,train=FALSE)[[1]]
                   ev <- try(evaluates(pred.par[[2]][,sp],pred(pred.par),distribution=.self$setting@distribution[sp]),silent=TRUE)
                   if (!inherits(ev, "try-error")) mo@evaluation[['test.indep']] <- ev
                   else mo@errorLog[['evaluation']][['test.indep']] <- ev
+                  
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['test.indep']] <- vi
+                  else mo@errorLog[['varImportance']][['test.indep']] <- vi
                 } else mo@errorLog[['fit']] <- mo@object
                 options(warn=0)
                 mo
@@ -1110,10 +1123,20 @@ setRefClass(".workload",
                   if (!inherits(ev, "try-error")) mo@evaluation[['training']] <- ev
                   else mo@errorLog[['evaluation']][['training']] <- ev
                   
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['training']] <- vi
+                  else mo@errorLog[['varImportance']][['training']] <- vi
+                  
+                  
                   pred.par[[2]] <- dt[.self$replicates[[sp]][[rID]][[3]],]
                   ev <- try(evaluates(pred.par[[2]][,sp],pred(pred.par),distribution=.self$setting@distribution[sp]),silent=TRUE)
                   if (!inherits(ev, "try-error")) mo@evaluation[['test.dep']] <- ev
                   else mo@errorLog[['evaluation']][['test.dep']] <- ev
+                  
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['test.dep']] <- vi
+                  else mo@errorLog[['varImportance']][['test.dep']] <- vi
+                  
                 } else mo@errorLog[['fit']] <- mo@object
                 options(warn=0)
                 mo
@@ -1134,10 +1157,20 @@ setRefClass(".workload",
                   if (!inherits(ev, "try-error")) mo@evaluation[['training']] <- ev
                   else mo@errorLog[['evaluation']][['training']] <- ev
                   
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['training']] <- vi
+                  else mo@errorLog[['varImportance']][['training']] <- vi
+                  
+                  
                   pred.par[[2]] <- .self$generateParams(list(dtype),sp,train=FALSE)[[1]]
                   ev <- try(evaluates(pred.par[[2]][,sp],pred(pred.par),distribution=.self$setting@distribution[sp]),silent=TRUE)
                   if (!inherits(ev, "try-error")) mo@evaluation[['test.indep']] <- ev
                   else mo@errorLog[['evaluation']][['test.indep']] <- ev
+                  
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['test.indep']] <- vi
+                  else mo@errorLog[['varImportance']][['test.indep']] <- vi
+                  
                 } else mo@errorLog[['fit']] <- mo@object
                 options(warn=0)
                 mo
@@ -1156,6 +1189,11 @@ setRefClass(".workload",
                   ev <- try(evaluates(dt[,sp],pred(pred.par),distribution=.self$setting@distribution[sp]),silent=TRUE)
                   if (!inherits(ev, "try-error")) mo@evaluation[['training']] <- ev
                   else mo@errorLog[['evaluation']][['training']] <- ev
+                  
+                  vi <- try(._varImp(pred.par,pred=pred,sp=sp,nsim = 10),silent=TRUE)
+                  if (!inherits(vi, "try-error")) mo@varImportance[['training']] <- vi
+                  else mo@errorLog[['varImportance']][['training']] <- vi
+                  
                 } else mo@errorLog[['fit']] <- mo@object
                 options(warn=0)
                 mo
@@ -1316,3 +1354,20 @@ setRefClass(".sdmOptions",
             )
 )
 .sdmOptions <- new('.sdmOptions')
+
+#-------
+
+setClass(".sdmCalibration",
+         representation(
+           statistic='numeric',
+           calibration='data.frame'
+         )
+)
+
+#--------
+setClass(".varImportance",
+         representation(
+           variables='character',
+           varImportance='data.frame'
+         )
+)

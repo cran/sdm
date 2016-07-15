@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  July 2014
-# Version 1.0
+# Date :  June 2016
+# Version 1.1
 # Licence GPL v3
 #--------
 
@@ -117,8 +117,8 @@
 }
 #--------
 .deviance_binomial <- function(obs,pr,w=NULL) {
-  pr <- ifelse(pr == 0,0.001,pr)
-  pr <- ifelse(pr == 1,0.999,pr)
+  pr <- ifelse(pr <= 0,0.001,pr)
+  pr <- ifelse(pr >= 1,0.999,pr)
   o <- log( pr*obs + (1-pr)*(1-obs) )
   o <- o[o != -Inf]
   if (!is.null(w) && length(w) == length(o)) {
@@ -304,7 +304,7 @@ setMethod('evaluates', signature(x='vector',p='vector'),
 .extractEvaluation <- function(x,id,wtest=NULL,stat=NULL,opt=NULL) {
   mi <- x@run.info
   mi <- mi[mi$success,]
-  if (missing(id)) id <- mi$modelID
+  if (missing(id) || is.null(id)) id <- mi$modelID
   if (is.null(wtest)) wtest <- colnames(mi)[9:7][which(as.matrix(mi[1,c(9,8,7)]))[1]]
   else {
     wtest <- .pmatch(wtest,c('training','test.dep','test.indep'))[1]
@@ -408,7 +408,30 @@ setMethod('evaluates', signature(x='vector',p='vector'),
   }
   o
 }
-
+###############
+.getEvalTable <- function(x,id,wtest,stat=NULL) {
+  # stat can be 1 (threshold-independent) OR 2 (threshold-dependent)
+  mi <- x@run.info
+  w <- which(mi$modelID == id)
+  if (length(w) == 1) {
+    
+    if (missing(wtest) || is.null(wtest)) wtest <- colnames(mi)[9:7][which(as.matrix(mi[1,c(9,8,7)]))[1]]
+    else {
+      wtest <- .pmatch(wtest,c('training','test.dep','test.indep'))[1]
+      if (is.na(wtest)) wtest <- colnames(mi)[9:7][which(as.matrix(mi[1,c(9,8,7)]))[1]]
+    }
+    
+    sp <- as.character(mi$species)[w]
+    mo <- as.character(mi$method)[w]
+    i <- as.character(mi$modelID)[w]
+    if (is.null(stat)) list(threhsold_independent=x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@statistics,
+           threshold_based=x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@threshold_based)
+    else if (stat == 1) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@statistics
+    else if (stat == 2) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@threshold_based
+    
+  } 
+  
+}
 
 #--------
 if (!isGeneric("getEvaluation")) {
@@ -417,13 +440,23 @@ if (!isGeneric("getEvaluation")) {
 }  
 
 setMethod('getEvaluation', signature(x='sdmModels'),
-          function(x, w=NULL, wtest=NULL,stat=c('AUC','COR','Deviance','TSS'),opt=2,...) {
-            e <- .extractEvaluation(x,id=w,wtest=wtest,stat=stat,opt=opt)
-            o <- data.frame(ncol=length(stat)+1,nrow=length(e))
-            colnames(o) <- c('modelID',stat)
-            if (length(stat) > 1) o[,2:ncol(o)] <- t(sapply(e,function(x) unlist(x)))
-            else o[,2] <- sapply(e,function(x) unlist(x))
-            o[,1] <- as.numeric(names(e))
-            e
+          function(x, w, wtest,stat,opt,...) {
+            if (missing(w)) w <- NULL
+            if (missing(wtest)) wtest <- NULL
+            if (missing(stat)) stat <-c('AUC','COR','Deviance','TSS')
+            if (missing(opt)) opt <- 2
+            
+            if (!is.null(w) & length(w) == 1 & stat %in% 1:2) {
+              .getEvalTable(x,id = w,wtest=wtest,stat=stat)
+            } else {
+              e <- .extractEvaluation(x,id=w,wtest=wtest,stat=stat,opt=opt)
+              o <- data.frame(matrix(ncol=length(stat)+1,nrow=length(e)))
+              colnames(o) <- c('modelID',stat)
+              if (length(stat) > 1) o[,2:ncol(o)] <- t(sapply(e,function(x) unlist(x)))
+              else o[,2] <- sapply(e,function(x) unlist(x))
+              o[,1] <- as.numeric(names(e))
+              o
+            }
+            
           }
 )

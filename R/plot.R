@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  Feb. 2015
-# Version 2.0
+# Date :  July. 2016
+# Version 2.2
 # Licence GPL v3
 
 
@@ -12,14 +12,16 @@ if (!isGeneric("plot")) {
 
 setMethod("plot", signature(x='sdmEvaluate'),
           function(x,y,smooth=TRUE,...) {
-            if (missing(y)) y <- 'ROC'
+            if (missing(y)) y <- 'roc'
             else {
               ar <- c('roc','sensitivity','specificity','TSS','Kappa','NMI','phi','ppv','npv','ccr','mcr','or','ommission','commission','predicted.prevalence')
               y <- .pmatch(y,ar)[1]
               if (is.na(y)) stop('when x is a sdmEvaluate object, y should be a statistic to plot, the name in the y is not recognised!')
             }
             
-            if (y == 'ROC') {
+            if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
+            
+            if (y == 'roc') {
               r <- .roc(x@observed,x@predicted)
               .plot.roc(r,auc=x@statistics$AUC,smooth=smooth,...)
             } else {
@@ -109,5 +111,109 @@ setMethod("plot", signature(x='sdmdata'),
               
             }
             
+          }
+)
+
+
+setMethod("plot", signature(x='.sdmCalibration'),
+          function(x,y,...) {
+            if (missing(y)) y <- NULL
+            dot <- list(...)
+            ndot <- names(dot)
+            
+            if (!'xlab' %in% ndot) dot[['xlab']] <- "Predicted Probability of Occurrence"
+            if (!'ylab' %in% ndot) dot[['ylab']] <- "Proportion of Observed Occurrences"
+            if (!'xlim' %in% ndot) dot[['xlim']] <-  c(0,1)
+            if (!'ylim' %in% ndot) dot[['ylim']] <-  c(0,1)
+            if (!'main' %in% ndot) dot[['main']] <- 'Calibration Plot'
+            if (!'sub' %in% ndot) dot[['sub']] <- paste('statistic = ',round(x@statistic,3),sep='')
+            if ('cex' %in% ndot) {
+              cex <- dot[['cex']]
+              w <- which(ndot == 'cex')
+              dot <- dot[-w]
+              ndot <- ndot[-w]
+            } else cex <- 2
+            
+            if ('pch' %in% ndot) {
+              pch <- dot[['pch']]
+              w <- which(ndot == 'pch')
+              dot <- dot[-w]
+              ndot <- ndot[-w]
+            } else pch <- 16
+            
+            dot[['x']] <- 2
+            dot[['y']] <- 1
+            do.call(plot,dot)
+            abline(a=0,b=1,lty=2)
+            points(x@calibration[,1:2],pch=16,cex=2)
+            #legend(0.7,0.05,legend = paste('Calibration = ',round(o@statistic,3),sep=''),text.width=0.3)
+          }
+)
+#-------
+
+
+setMethod("plot", signature(x='.varImportance'),
+          function(x,y,...) {
+            if (missing(y)) y <- 'corTest'
+            else {
+              y <- y[1]
+              if (is.character(y)) y <- .pmatch(y,c('corTest','AUCtest'))
+              else if (is.numeric(y)) {
+                if (!y %in% c(1,2)) {
+                  y <- 'corTest'
+                  warning('y should be 1 or 2, it is changed to 1 (i.e., corTest)')
+                } else y <- c('corTest','AUCtest')[y]
+              } else {
+                y <- 'corTest'
+                warning('y is not identified... default is used (i.e., corTest)')
+              }
+            }
+            
+            dot <- list(...)
+            ndot <- names(dot)
+            if (!'xlab' %in% ndot) dot[['xlab']] <- "Relative Variable Importance"
+            if (!'horiz' %in% ndot) dot[['horiz']] <- TRUE
+            if (!'names.arg' %in% ndot) dot[['names.arg']] <- x@variables
+            if (!'col' %in% ndot) dot[['col']] <-'#DDE9EB'
+            dot[['height']] <- x@varImportance[,y]
+            
+            do.call(barplot,dot)
+          }
+)
+#-------
+if (!isGeneric("boxplot")) {
+  setGeneric("boxplot", function(x, ...)
+    standardGeneric("boxplot"))
+}	
+
+
+setMethod('boxplot', signature(x='sdmEvaluate'), 
+          function(x,notch = FALSE,col='#DDE9EB',names,...) {
+            
+            p <- x@predicted
+            x <- x@observed
+            
+            w <- which(!is.na(p))
+            p <- p[w]; x <- x[w]
+            w <- which(!is.na(x))
+            p <- p[w]; x <- x[w]
+            
+            w1 <- which(x == 1)
+            w2 <- which(x == 0)
+            
+            if (length(w1) > 0) {
+              if (length(w2) > 0) {
+                if (missing(names)) names <- c('Absence','Presence')
+                boxplot(p[w2],p[w1],notch=notch,names=names,col=col,...)
+              } else {
+                if (missing(names)) names <-'Absence'
+                boxplot(p[w2],notch=notch,col=col,...)
+              }
+            } else {
+              if (length(w2) > 0) {
+                if (missing(names)) names <- 'Presence'
+                boxplot(p[w1],notch=notch,names=names,col=col,...)
+              }
+            }
           }
 )

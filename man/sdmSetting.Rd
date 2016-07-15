@@ -48,6 +48,8 @@ using sdmSetting, the feature types, interaction.depth and all settings of the m
 
 \author{Babak Naimi \email{naimi.b@gmail.com}
 
+\url{http://r-gis.net}
+
 \url{http://biogeoinformatics.org}
 }
 

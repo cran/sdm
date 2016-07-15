@@ -47,6 +47,8 @@ roc generates the plots of roc curves, and getRoc generate the values of ROC
 
 \author{Babak Naimi \email{naimi.b@gmail.com}
 
+\url{http://r-gis.net}
+
 \url{http://biogeoinformatics.org}
 }
 

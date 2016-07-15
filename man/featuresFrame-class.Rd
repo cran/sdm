@@ -21,6 +21,8 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 \author{Babak Naimi \email{naimi.b@gmail.com}
 
+\url{http://r-gis.net}
+
 \url{http://biogeoinformatics.org}
 }
 

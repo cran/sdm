@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March 2016
-# Version 2.2
+# Date :  June 2016
+# Version 2.3
 # Licence GPL v3
 
 #------
@@ -341,11 +341,21 @@ setReplaceMethod('.addLog','sdmdata',
       } else {
         w <- as.character(data[,n])
         u <- unique(w)
+        if ('0' %in% u) {
+          u <- u[u != '0']
+          bg <- data$rID[which(w == '0')]
+        } else bg <- NULL
         for (uu in u) {
           species[[uu]] <- new('.species.data')
           species[[uu]]@name <- uu
           species[[uu]]@presence <- data$rID[which(w == uu)]
           species[[uu]]@type <- typ
+        }
+        if (!is.null(bg)) {
+          for (uu in u) {
+            species[[uu]]@background <- bg
+            species[[uu]]@type <- 'Presence-Background'
+          }
         }
       }
     } else if (typ == 'Abundance') {
@@ -390,7 +400,8 @@ setReplaceMethod('.addLog','sdmdata',
   
   w <- nrow(x)
   if (!missing(nsp)) {
-    ww <- which(apply(x[which(colnames(x) %in% nsp),],1,function(x){all(is.na(x))}))
+    if (length(nsp) > 1) ww <- which(apply(x[,which(colnames(x) %in% nsp)],1,function(x){any(is.na(x))}))
+    else ww <- which(is.na(x[,which(colnames(x) %in% nsp)]))
     if (length(ww) > 0) {
       x <- x[-ww,]
       rm.na <- w - nrow(x)
@@ -588,6 +599,14 @@ setReplaceMethod('.addLog','sdmdata',
       ww <- c()
       if (w[[2]][1] > 0) .addLog(d) <- paste(w[[2]][1],'records with NA from the background data are removed')
       if (w[[2]][2] > 0) .addLog(d) <- paste(w[[2]][2],'duplicarted records from the background data are removed')
+    }
+    
+    
+    for (n in nsp) {
+      if (is.factor(train[,n]) || is.character(train[,n])) {
+        train[,n] <- as.character(train[,n])
+        bg[,n] <- as.character(bg[,n])
+      }
     }
     
     bg$rID <- (nrow(train)+1):(nrow(bg)+nrow(train))

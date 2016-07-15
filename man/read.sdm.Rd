@@ -39,6 +39,8 @@ write.sdm(x,filename,overwrite,...)
 
 \email{naimi@r-gis.net}
 
+\url{http://r-gis.net}
+
 \url{http://biogeoinformatics.org}
 }
 

@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  May 2015
-# Version 1.0
+# Date :  July 2016
+# Version 1.4
 # Licence GPL v3
 
 setMethod ('show' , 'sdmdata',
@@ -9,8 +9,8 @@ setMethod ('show' , 'sdmdata',
              cat('===========================================================','\n')
              cat('number of species                     : ' , length(object@species.names) , '\n')
              cat('species names                         : ' , if (length(object@species.names) > 3) paste(c(object@species.names[1:3],'...'),collapse=', ') else paste(object@species.names,collapse=', ') , '\n')
-             cat('number of fearures                    : ' , length(object@features.name), '\n')
-             cat('fearure names                         : ' , if (length(object@features.name) > 0) {
+             cat('number of features                    : ' , length(object@features.name), '\n')
+             cat('feature names                         : ' , if (length(object@features.name) > 0) {
                if (length(object@features.name) > 3) paste(c(object@features.name[1:3],'...'),collapse=', ') else paste(object@features.name,collapse=', ')
              } else NA, '\n')
              if (length(object@factors) > 0) {
@@ -68,6 +68,7 @@ setMethod ('show' , '.sdmCorSetting',
 
 setMethod ('show' , 'sdmModels',
            function (object) {
+             if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
              mi <- object@run.info
              for (i in c(2,3)) mi[,i] <- as.character(mi[,i])
              sp <- unique(mi$species)
@@ -106,8 +107,14 @@ setMethod ('show' , 'sdmModels',
                }
                o
              }
+             
              a <- ''
-             for (i in sp) a <- paste(a,i,paste(rep(' ',15 - length(unlist(strsplit(i,'')))),collapse=''),collapse='')
+             for (i in sp) {
+               aa <- length(unlist(strsplit(i,'')))
+               la <- 15
+               if (length(aa) >= 15) la <- length(aa) + 3
+               a <- paste(a,i,paste(rep(' ',la - aa),collapse=''),collapse='')
+              }
              cat(paste('method        ',a,collapse='|'),'\n')
              cat(paste(rep('-',length(unlist(strsplit(a,'')))+5),collapse=''),'\n')
              
