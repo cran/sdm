@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  June 2016
-# Version 1.1
+# Date :  Oct. 2016
+# Version 1.3
 # Licence GPL v3
 #--------
 
@@ -396,20 +396,28 @@ setMethod('evaluates', signature(x='vector',p='vector'),
   names(s1) <- s1
   names(s2) <- s2
   
+  ws <- vector('list',length(c(s1,s2))) # for the case of NA in the evaluation
+  names(ws) <- c(s1,s2)
+  ws[] <- NA
   for (i in id) {
     sp <- mi[i,2]
     mo <- mi[i,3]
-    if (!is.null(s1)) {
-      o[[i]] <- lapply(s1,function(j) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@statistics[[j]][[1]])
-    }
-    if (!is.null(s2)) {
-      o[[i]] <- c(o[[i]],lapply(s2,function(j) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@threshold_based[opt,j]))
+    if (!is.null(x@models[[sp]][[mo]][[i]]@evaluation[[wtest]])) {
+      if (!is.null(s1)) {
+        o[[i]] <- lapply(s1,function(j) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@statistics[[j]][[1]])
+      }
+      if (!is.null(s2)) {
+        o[[i]] <- c(o[[i]],lapply(s2,function(j) x@models[[sp]][[mo]][[i]]@evaluation[[wtest]]@threshold_based[opt,j]))
+      }
+    } else {
+      o[[i]] <- c(o[[i]],ws)
     }
   }
   o
 }
 ###############
 .getEvalTable <- function(x,id,wtest,stat=NULL) {
+  # This is to get evaluation table for a single model!
   # stat can be 1 (threshold-independent) OR 2 (threshold-dependent)
   mi <- x@run.info
   w <- which(mi$modelID == id)
@@ -446,17 +454,19 @@ setMethod('getEvaluation', signature(x='sdmModels'),
             if (missing(stat)) stat <-c('AUC','COR','Deviance','TSS')
             if (missing(opt)) opt <- 2
             
-            if (!is.null(w) & length(w) == 1 & stat %in% 1:2) {
+            if (!is.null(w) && length(w) == 1 && all(stat %in% 1:2)) {
               .getEvalTable(x,id = w,wtest=wtest,stat=stat)
             } else {
               e <- .extractEvaluation(x,id=w,wtest=wtest,stat=stat,opt=opt)
-              o <- data.frame(matrix(ncol=length(stat)+1,nrow=length(e)))
-              colnames(o) <- c('modelID',stat)
-              if (length(stat) > 1) o[,2:ncol(o)] <- t(sapply(e,function(x) unlist(x)))
-              else o[,2] <- sapply(e,function(x) unlist(x))
-              o[,1] <- as.numeric(names(e))
-              o
+              if (length(e) > 0) {
+                stat <- names(e[[1]])
+                o <- data.frame(matrix(ncol=length(stat)+1,nrow=length(e)))
+                colnames(o) <- c('modelID',stat)
+                if (length(stat) > 1) o[,2:ncol(o)] <- t(sapply(e,function(x) unlist(x)))
+                else o[,2] <- sapply(e,function(x) unlist(x))
+                o[,1] <- as.numeric(names(e))
+                o
+              } else stop('No evaluation results for the specified models!')
             }
-            
           }
 )

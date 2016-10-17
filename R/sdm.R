@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  April 2016
-# Version 2.4
+# Date :  Oct. 2016
+# Version 2.5
 # Licence GPL v3
 #--------
 
@@ -439,7 +439,7 @@
   if (!is.null(s@replicate)) {
     f <- .replicateMethods$getFunctions(s@replicate)
     for (sp in names(w$train)) {
-      if (d@species[[sp]]@type == 'Presence-Absence') family <- 'binomial'
+      if (d@species[[sp]]@type %in% c('Presence-Absence','Presence-Background')) family <- 'binomial'
       else family <- 'xxx'
       
       # sdmDataFrame! Leter should be checked for other types of data!

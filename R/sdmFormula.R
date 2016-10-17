@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  May 2015
-# Version 1.0
+# Date :  Oct. 2016
+# Version 1.1
 # Licence GPL v3
 
 .newFormulaFunction <- function(cls,name,args,getFeature) {
@@ -283,7 +283,41 @@
   return(v1[length(tl)+1]*xx)
 }
 #------
+
+.agrep <- function(n,choices, r=seq(0,0.3,0.05)) {
+  # r is a range can be used for max distance
+  for (i in r) {
+    w <- agrep(n,choices,ignore.case = TRUE,max.distance = list(all=i))
+    if (length(w) > 0) break
+  }
+  if (length(w) > 1) {
+    d <- unlist(lapply(choices[w],function(x) .LD(n,x)))
+    w2 <- which(d == min(d))
+    if (length(w2) == 1) choices[w][w2]
+    else NA
+  } else if (length(w) == 1) choices[w]
+  else NA
+}
+
 .pmatch <- function(n,choices) {
+  for (i in seq_along(n)) {
+    if (n[i] != '') {
+      if (!n[i] %in% choices) {
+        u <- try(match.arg(tolower(n[i]),tolower(choices)),silent=TRUE)
+        if (!inherits(u,"try-error")) {
+          n[i] <- choices[which(tolower(choices) == u)]
+        } else {
+          n[i] <- .agrep(n[i],choices)
+        }
+      }
+    } else n[i] <- NA
+  }
+  n
+}
+
+##########
+# old version:
+.pmatch2 <- function(n,choices) {
   for (i in seq_along(n)) {
     if (n[i] != '') {
       if (!n[i] %in% choices) {
