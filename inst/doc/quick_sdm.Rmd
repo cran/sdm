@@ -201,6 +201,40 @@ plot(p2m)
 getZ(p2m)
 
 ```
+## Ensemble forecasting
+
+Studies have shown that predictions or projections by alternative models can be so variable that challenge the common practice of relying on one single method. A solution is to utilize several models ('ensembles') and use appropriate techniques to explore the resulting range of projections. Significant improvements on the robustness of a forecast can be achieved if an ensemble approach is used and the results analysed appropriately.
+
+In the sdm package, the ensemble function can be used to generate an ensemble prediction or forecast based on the multiple models that are used in the sdm function. Several methods are implemented and can be used by a user in a flexible way. Here is an example:
+
+```{r, fig.width = 6, fig.height = 6}
+# in the following, we predict the habitat suitability using the ensemble function
+# since the newdata is a raster object, the output is also a raster object
+
+# ensemble based on a Weighted averaging that is weighted using AUC statistic
+e1 <- ensemble(m1,newdata=preds,filename='e1.img',setting=list(method='weighted',stat='AUC')) 
+
+plot(e1)
+
+# ensemble based on a Weighted averaging that is weighted using TSS statistic with threshold criterion number 2 which is max(Sensitivity+Specificity) or max(TSS)
+e2 <- ensemble(m2,newdata=preds,filename='e2.img',setting=list(method='weighted',stat='TSS',opt=2))
+
+e2
+
+plot(e2)
+
+# ensemble based on an Unweighted averaging
+e3 <- ensemble(m2,newdata=preds,filename='e3.img',setting=list(method='unweighted'))
+
+plot(e3)
+
+
+```
+there are other options in the setting argument that can specified by a used, for example, one may define a numeric verctor as weight, or specify the id of some models that should be incorporated into the ensemble procedure.
+
+
+
+
 
 ## Reference
 

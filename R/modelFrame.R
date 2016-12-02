@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  September 2015
-# Version 1.0
+# Date (last update):  Nov. 2016
+# Version 1.1
 # Licence GPL v3
 
 .getFeature.linear <- function(x) {
@@ -401,18 +401,37 @@
   list(features=d,specis_specific=o) 
 }
 #-----------
-
-
 .getFeatureNamesTypes <- function(x,merged=TRUE) {
   # get the name of features from a featureFrame onject (x)
   # If merged is FALSE, separately reported in a list
-  n1 <- unlist(lapply(x@feature.types,function(x) x@feature.name))
-  n2 <- unlist(lapply(x@response.specific ,function(x) x@feature.name))
+  n1 <- n2 <- data.frame(matrix(ncol=2,nrow = 0))
+  colnames(n1) <- colnames(n2) <- c('name','type')
+  for (i in seq_along(x@feature.types)) {
+    n1 <-  rbind(n1,data.frame(name=x@feature.types[[i]]@feature.name,type=x@feature.types[[i]]@type))
+  }
   
-  f1 <- unlist(lapply(x@feature.types,function(x) x@type))
-  f2 <- unlist(lapply(x@response.specific,function(x) x@type))
-  names(f1) <- n1
-  names(f2) <- n2
-  if (merged) c(f1,f2)
-  else list(features=f1,response.specific=f2)
+  for (i in seq_along(x@response.specific)) {
+    n2 <-  rbind(n2,data.frame(name=x@response.specific[[i]]@feature.name,type=x@response.specific[[i]]@type))
+  }
+  if (nrow(n1) == 0) n1 <- NULL
+  if (nrow(n2) == 0) n2 <- NULL
+  
+  if (merged) {
+    n1 <- rbind(n1,n2)
+    if (!is.null(n1)) {
+      n1$name <- as.character(n1$name)
+      n1$type <- as.character(n1$type)
+    }
+  } else {
+    if (!is.null(n1)) {
+      n1$name <- as.character(n1$name)
+      n1$type <- as.character(n1$type)
+    }
+    if (!is.null(n2)) {
+      n2$name <- as.character(n2$name)
+      n2$type <- as.character(n2$type)
+    }
+    n1 <- list(features=n1,response.specific=n2)
+  }
+  n1
 }

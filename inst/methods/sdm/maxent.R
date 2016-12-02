@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update) :  Nov. 2016
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -8,7 +8,7 @@ methodInfo <- list(name=c('maxent','Maxent','MAXENT','entropy','maxentropy'),
                    packages=c('dismo','rJava'),
                    modelTypes = c('pb'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
-                   fitSettings = list(beta=1,prevalence=0.5,feat='-A',args=NULL),
+                   fitSettings = list(beta=1,prevalence=0.5,feat='autofeature',args=NULL),
                    fitFunction = '.maxent',
                    settingRules = function(x,fitSettings,predictSettings) {
                      #

@@ -8,6 +8,7 @@
     .sdmOptions$addOption('maxJar',file.exists(jar))
   }
   .sdmOptions$addOption('sdmLoaded',FALSE)
+  
   invisible(0)
 }
 

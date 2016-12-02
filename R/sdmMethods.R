@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March 2016
-# Version 2.0
+# Date (last uodate):  Nov. 2016
+# Version 2.1
 # Licence GPL v3
 
 
@@ -56,6 +56,7 @@ setMethod('getmethodNames', signature(w='ANY'),
           function(w,alt,...) {
             if (missing(w)) w <- 'sdm'
             if (missing(alt)) alt <- TRUE
+            if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
             if (w == 'sdm') .sdmMethods$getMethodNames(alt=alt)
           }
 )
@@ -79,7 +80,8 @@ setMethod('getModelInfo', signature(x='sdmModels'),
 
 .addMethods <- function() {
   methodInfo <- NULL
-  n <- getmethodNames('sdm',alt=FALSE)
+  #n <- getmethodNames('sdm',alt=FALSE)
+  n <- .sdmMethods$getMethodNames(alt=FALSE)
   lst <- list.files(system.file("methods/sdm", package="sdm"),pattern='R$',full.names = TRUE)
   for (l in lst) {
     source(l,local=TRUE)

@@ -1,8 +1,10 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  Aptil 2016
-# Version 2.3
+# Date (last update):  Nov. 2016
+# Version 2.5
 # Licence GPL v3
-# 
+
+
+#--------------------
 # .raster2data.table <- function(r) {
 #   if (inherits(r,'RasterBrick'))  {
 #     o <- data.table(r@data@values)
@@ -53,29 +55,48 @@
 }
 
 #-----------
-.raster2df <- function(x,level) {
-  d <- data.frame(cellnr=1:ncell(x),as.data.frame(x))
+.raster2df <- function(x,nFact) {
+  n <- names(x)
+  d <- data.frame(getValues(x))
+  colnames(d) <- n
+  d <- data.frame(cellnr=1:ncell(x),d)
   bb <- rep(TRUE,nrow(d))
   for (i in 2:ncol(d)) bb <- bb & !is.na(d[,i])
   if (length(which(bb)) == 0) stop('raster object has no data...!')
   d <- d[bb,]
   rm(bb)
   
-  if (!missing(level) && !is.null(level)) {
-    n <- names(level)
-    for (i in seq_along(n)) {
-      l <- level[[i]]
-      u <- sort(unique(d[,n[i]]))
-      if (any(u %in% c(1:length(l)))) {
-        u <- u[u %in% c(1:length(l))]
-        l <- l[u]
-        d[,n[i]] <- factor(d[,n[i]])
-        levels(d[,n[i]]) <- l
-      } else stop('the grid values in categorical rasters does not match with the factor levels in the model')
+  if (!missing(nFact) && !is.null(nFact)) {
+    for (i in seq_along(nFact)) {
+      d[,nFact[i]] <- factor(d[,nFact[i]])
     }
   }
   d
 }
+#----------------
+# .raster2df <- function(x,level) {
+#   d <- data.frame(cellnr=1:ncell(x),as.data.frame(x))
+#   bb <- rep(TRUE,nrow(d))
+#   for (i in 2:ncol(d)) bb <- bb & !is.na(d[,i])
+#   if (length(which(bb)) == 0) stop('raster object has no data...!')
+#   d <- d[bb,]
+#   rm(bb)
+#   
+#   if (!missing(level) && !is.null(level)) {
+#     n <- names(level)
+#     for (i in seq_along(n)) {
+#       l <- level[[i]]
+#       u <- sort(unique(d[,n[i]]))
+#       if (any(u %in% c(1:length(l)))) {
+#         u <- u[u %in% c(1:length(l))]
+#         l <- l[u]
+#         d[,n[i]] <- factor(d[,n[i]])
+#         levels(d[,n[i]]) <- l
+#       } else stop('the grid values in categorical rasters does not match with the factor levels in the model')
+#     }
+#   }
+#   d
+# }
 #----------------
 
 .generateName <- function(x) {
@@ -91,8 +112,6 @@
   names(u)[order(u,decreasing = TRUE)]
 }
 #---------
-
-
 if (!isGeneric("predict")) {
   setGeneric("predict", function(object, ...)
     standardGeneric("predict"))
@@ -147,6 +166,13 @@ if (!isGeneric("predict")) {
   w$newdata$raster <- NULL
   nf <- nFact <- NULL
   
+  nf <- .getFeatureNamesTypes(x@setting@featuresFrame)
+  if (!is.null(nf) && 'factor' %in% nf[,2]) {
+    nFact <- as.character(nf[nf[,2] == 'factor',1])
+    nf <- nf$name
+    nf <- .excludeVector(nf,nFact)
+  } else nf <- nf$name
+  
   if (inherits(newdata,'data.frame')) {
     n <- colnames(newdata)
     if (!all(x@setting@featuresFrame@vars %in% n)) stop('the data does not contain some or all of the variables that the model needs...')
@@ -156,7 +182,7 @@ if (!isGeneric("predict")) {
     n <- names(newdata)
     if (!all(x@setting@featuresFrame@vars %in% n)) stop('the data does not contain some or all of the variables that the model needs...')
     w$newdata$raster <- newdata
-    w$newdata$data.frame <- .raster2df(newdata,.getlevels(x))
+    w$newdata$data.frame <- .raster2df(newdata,nFact)
     
     w$modelFrame <- .getModelFrame(x@setting@featuresFrame,w$newdata$data.frame,response=species)
     
@@ -183,10 +209,11 @@ if (!isGeneric("predict")) {
   }
   
   #######
-  nf <- .getFeatureNamesTypes(x@setting@featuresFrame)
-  if ('factor' %in% nf) {
-    nFact <- names(nf)[nf == 'factor']
-    nf <- .excludeVector(names(nf),nFact)
+  #nf <- .getFeatureNamesTypes(x@setting@featuresFrame)
+  #if ('factor' %in% nf) {
+  if (!is.null(nFact)) {
+    #nFact <- names(nf)[nf == 'factor']
+    #nf <- .excludeVector(names(nf),nFact)
     id <- mi[,1]
     dd <- as.data.frame(x@data)
     ddf <- .getModelFrame(x@setting@featuresFrame,dd,response=species)
@@ -211,7 +238,7 @@ if (!isGeneric("predict")) {
         r <- unique(r)
         o <- data.frame(matrix(ncol=3,nrow=0))
         for (j in r) {
-          ddd <- .factorFixW(d1[dd %in% .getRecordID(x@recordIDs,x@replicates[[sp]][[j]]$train,sp=sp,train=TRUE),],d2,nf = nf,nFact=nFact)
+          ddd <- .factorFixW(d1[dd %in% .getRecordID(x@recordIDs,x@replicates[[sp]][[j]]$train,sp=sp,train=TRUE),,drop=FALSE],d2,nf = nf,nFact=nFact)
           
           if (length(ddd) > 0) {
             for (i in seq_along(ddd)) {
@@ -219,23 +246,31 @@ if (!isGeneric("predict")) {
             }
           }
         }
-        
-        if (nrow(o) > 0) {
-          for (n in as.character(unique(o[,1]))) {
-            wn <- which(o$f == n)
-            oc <- o[wn,]
-            u <- as.character(unique(oc[,2]))
-            un <- as.character(unique(o[wn,3]))
-            for (uu in u) {
-              wc <- which(oc$old == uu)
-              nc <- .domClass(as.character(oc$new[wc]))
-              if (nc[1] %in% u && length(nc) > 1) nc <- nc[2]
-              else nc <- nc[1]
-              ww <- which(w$modelFrame$features[,n] == uu)
-              w$modelFrame$features[ww,n] <- nc
-            }
-            w$modelFrame$features[,n] <- factor(w$modelFrame$features[,n])
+      } else {
+        ddd <- .factorFixW(d1,d2,nf = nf,nFact=nFact)
+        o <- data.frame(matrix(ncol=3,nrow=0))
+        if (length(ddd) > 0) {
+          for (i in seq_along(ddd)) {
+            o <- rbind(o,data.frame(f=ddd[[i]][[1]],old=ddd[[i]][[2]],new=ddd[[i]][[3]]))
           }
+        }
+      }
+      
+      if (nrow(o) > 0) {
+        for (n in as.character(unique(o[,1]))) {
+          wn <- which(o$f == n)
+          oc <- o[wn,]
+          u <- as.character(unique(oc[,2]))
+          un <- as.character(unique(o[wn,3]))
+          for (uu in u) {
+            wc <- which(oc$old == uu)
+            nc <- .domClass(as.character(oc$new[wc]))
+            if (nc[1] %in% u && length(nc) > 1) nc <- nc[2]
+            else nc <- nc[1]
+            ww <- which(w$modelFrame$features[,n] == uu)
+            w$modelFrame$features[ww,n] <- nc
+          }
+          w$modelFrame$features[,n] <- factor(w$modelFrame$features[,n])
         }
       }
     }

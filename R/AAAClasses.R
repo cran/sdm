@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  July 2016
-# Version 3.4
+# Date (last update):  Nov. 2016
+# Version 3.5
 # Licence GPL v3
 
 
@@ -1369,5 +1369,19 @@ setClass(".varImportance",
          representation(
            variables='character',
            varImportance='data.frame'
+         )
+)
+#-----------
+
+setClass('.bioclimModel',
+         representation(
+           features='character',
+           min='numeric',
+           max='numeric',
+           median='numeric',
+           q25='numeric',
+           q75='numeric',
+           c='numeric',
+           weights='numericORnull'
          )
 )

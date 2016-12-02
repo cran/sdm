@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  July 2016
-# Version 1.5
+# Date (last update):  Nov. 2016
+# Version 1.6
 # Licence GPL v3
 
 setMethod ('show' , 'sdmdata',
@@ -65,6 +65,7 @@ setMethod ('show' , '.sdmCorSetting',
            }
 )
 #---------------------
+
 setMethod ('show' , 'sdmModels',
            function (object) {
              if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
@@ -109,10 +110,19 @@ setMethod ('show' , 'sdmModels',
              
              a <- ''
              a2 <- c()
+             
+             lb <- max(unlist(lapply(mo,function(x) length(strsplit(x,'')[[1]]))))
+             
+             if (lb < 10) lb <- 10
+             else lb <- lb+2
+             
+             mAdd <- 0
+             if (lb > 10) mAdd <- lb-10
+             
              for (i in sp) {
                aa <- length(unlist(strsplit(i,'')))
-               la <- 15
-               if (aa >= 15) la <- aa + 3
+               la <- (15 + mAdd)
+               if (aa >= (15 + mAdd)) la <- aa + 3 + mAdd
                a <- paste(a,i,paste(rep(' ',la - aa),collapse=''),collapse='')
                a2 <- c(a2,la)
              }
@@ -129,10 +139,10 @@ setMethod ('show' , 'sdmModels',
                  a3 <- paste(rep(' ',a2),collapse='') 
                }
                
-               
                a3 <- c(paste(rep(' ',a2[1]/2-2),collapse=''),a3)
-               for (j in 1:length(a2)) a4 <- paste(c(a4,a3[j],p2.mo),collapse='')
-               cat(paste(mo[i],paste(rep(' ',10 - length(unlist(strsplit(mo[i],'')))),collapse=''),' : ',paste(rep(' ',3),collapse=''),a4,sep='')  , '  %\n')
+               for (j in 1:length(a2)) a4 <- paste(c(a4,a3[j],p2.mo[j]),collapse='')
+               
+               cat(paste(mo[i],paste(rep(' ',lb - length(unlist(strsplit(mo[i],'')))),collapse=''),' : ',paste(rep(' ',3),collapse=''),a4,sep='')  , '  %\n')
              }
              wtest <- colnames(mi)[9:7][which(as.matrix(mi[1,c(9,8,7)]))[1]]
              
@@ -154,7 +164,7 @@ setMethod ('show' , 'sdmModels',
                  cat('model performance (per species), using training test dataset:\n')
              } 
              
-             cat('--------------------------------------------------------------------\n')
+             cat('-------------------------------------------------------------------------------\n')
              p <- function(x,sp) {
                a <- c()
                w1 <- mi$species == sp
@@ -177,13 +187,15 @@ setMethod ('show' , 'sdmModels',
              for (spp in sp) {
                
                cat('\n ## species   : ',spp,'\n')
-               cat('======================\n\n')
-               cat(paste('methods',paste(rep(' ',3),collapse=''),' : ',paste(rep(' ',3),collapse=''),sep='')  , paste(c('AUC','COR','TSS','Deviance'),collapse='     |     '), '\n')
-               cat('-------------------------------------------------------------------\n')
+               cat('=========================\n\n')
+               if (lb > 10) cat(paste('methods',paste(rep(' ',(lb/3+1)),collapse=''),' : ',paste(rep(' ',lb/3),collapse=''),sep='')  , paste(c('AUC','COR','TSS','Deviance'),collapse='     |     '), '\n')
+               else cat(paste('methods',paste(rep(' ',3),collapse=''),' : ',paste(rep(' ',3),collapse=''),sep='')  , paste(c('AUC','COR','TSS','Deviance'),collapse='     |     '), '\n')
+               cat('-------------------------------------------------------------------------\n')
                for (i in seq_along(mo)) {
-                 cat(paste(mo[i],paste(rep(' ',10 - length(unlist(strsplit(mo[i],'')))),collapse=''),' : ',paste(rep(' ',3),collapse=''),sep='')  , p(mo[i],spp), '\n')
+                 cat(paste(mo[i],paste(rep(' ',lb - length(unlist(strsplit(mo[i],'')))),collapse=''),' : ',paste(rep(' ',3),collapse=''),sep='')  , p(mo[i],spp), '\n')
                }
              }
            }
 )
+
 

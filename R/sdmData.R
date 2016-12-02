@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  June 2016
-# Version 2.3
+# Date of last update :  Nov. 2016
+# Version 2.4
 # Licence GPL v3
 
 #------
@@ -391,8 +391,9 @@ setReplaceMethod('.addLog','sdmdata',
 }
 
 #----------
-# remove duplicate records, and the rows that species columns contin NA OR all columns contain NA
-.dataClean <- function(x,nsp) {
+# remove duplicate records, and the rows that species columns contin NA OR all (or any) columns contain NA
+.dataClean <- function(x,nsp,ANY=TRUE) {
+  # ANY: whether if even a predictor variable is NA, is removed, or all should have NA?
   rm.na <-0; rm.duplicate <- 0
   w <- nrow(x)
   x <- unique(x)
@@ -407,7 +408,8 @@ setReplaceMethod('.addLog','sdmdata',
       rm.na <- w - nrow(x)
     }
   } else {
-    ww <- which(apply(x,1,function(x){all(is.na(x))}))
+    if (ANY) ww <- which(apply(x,1,function(x){any(is.na(x))}))
+    else ww <- which(apply(x,1,function(x){all(is.na(x))}))
     if (length(ww) > 0) {
       x <- x[-ww,]
       rm.na <- w - nrow(x)
@@ -568,7 +570,7 @@ setReplaceMethod('.addLog','sdmdata',
   
   d@sdmFormula <- exf
   
-  w <- .dataClean(train,nsp)
+  w <- .dataClean(train)
   if (any(w[[2]] > 0)) {
     train <- w[[1]]
     ww <- c()
@@ -593,7 +595,7 @@ setReplaceMethod('.addLog','sdmdata',
     
     if (!.varExist(data.frame(bg),nall)) stop('one or more predictor variables do not exist in the background data!')
     
-    w <- .dataClean(bg,nsp)
+    w <- .dataClean(bg)
     if (any(w[[2]] > 0)) {
       bg <- w[[1]]
       ww <- c()
@@ -616,7 +618,7 @@ setReplaceMethod('.addLog','sdmdata',
   
   if (!is.null(test)) {
     if (!.varExist(test,nall)) stop('one or more specified variables in the formula does not exist in the test data!')
-    w <- .dataClean(test,nsp)
+    w <- .dataClean(test)
     if (any(w[[2]] > 0)) {
       test <- w[[1]]
       ww <- c()
