@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,9 @@ methodInfo <- list(name=c('svm','SVM','ksvm'),
                    fitParams = list(x='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(type='eps-svr',kernel='rbfdot',epsilon=0.1,prob.model=FALSE,tol=0.001,shrinking=TRUE),
                    fitFunction = 'ksvm',
-                   settingRules = function(x,fitSettings) {
-                     if (x@distribution == 'n') fitSettings[['type']] <- 'C-svc'
-                     fitSettings
+                   settingRules = function(x='sdmVariables',f='fitSettings') {
+                     if (x@distribution == 'multinomial') f[['type']] <- 'C-svc'
+                     list(fitSettings=f)
                    },
                    tuneParams = NULL,
                    predictParams=list(object='model',newdata='sdmDataFrame'),

@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,7 @@ methodInfo <- list(name=c('mda','MDA'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(method = substitute(polyreg),keep.fitted=FALSE),
                    fitFunction = 'mda',
-                   settingRules = function(x,fitSettings) {
-                     fitSettings
-                   },
+                   settingRules = NULL,
                    tuneParams = list(method=substitute(c(polyreg,mars,gen.ridge,bruto))),
                    predictParams=list(object='model',newdata='sdmDataFrame'),
                    predictSettings=list(type='posterior'),

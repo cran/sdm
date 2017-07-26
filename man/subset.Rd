@@ -1,9 +1,12 @@
 \name{subset}
 
-\alias{[[}
+\docType{methods}
+
+
 \alias{subset}
 \alias{subset,sdmModels-method}
 \alias{[[,sdmModels,ANY,ANY-method}
+
 
 
 \title{Subset models in a sdmModels object}
@@ -14,18 +17,32 @@ This function extracts a subset of models from a \code{sdmModels} object. In gen
 Instead of using the \code{subset} function, double brackes '[[ ]]' can be used.
 }
 
-\usage{
-x[[i,...]]
 
-\S4method{subset}{sdmModels}(x, subset, drop=TRUE, ...)
+\section{Methods}{
+\describe{
+
+\code{subset(x, subset, drop=TRUE, ...)}
+
+\code{x[[i,...]]}
+
+
+Arguments:
+
+\code{x} - sdmModels object
+
+\code{i}- integer. Indicates the index/id of the models (modelID) should be extracted from sdmModels object
+
+\code{subset} -  Same as \code{i}
+
+\code{drop} - If \code{TRUE}, new modelIDs are generated, otherwise, the original modelIDs are kept in the new object.
+
+\code{...} - additional arguments (not impplemented yet!)
+
+}
 }
 
-\arguments{
-  \item{x}{sdmModels object}
-  \item{i}{integer. Indicates the index/id of the models (modelID) should be extracted from sdmModels object}
-  \item{subset}{ Same as \code{i}}
-  \item{drop}{If \code{TRUE}, new modelIDs are generated, otherwise, the original modelIDs are kept in the new object.}
-  \item{...}{additional arguments (not impplemented yet!)}
+\details{
+#
 }
 
 \value{

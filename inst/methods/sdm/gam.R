@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,10 +10,11 @@ methodInfo <-list(name=c('gam','GAM'),
            fitParams = list(formula='gam.mgcv.formula',data='sdmDataFrame'),
            fitSettings = list(family=binomial(link='logit'),weights=NULL,subset=NULL,na.action='na.omit',offset=NULL,method='GCV.Cp',optimizer=c("outer","newton"),select=FALSE,knots=NULL,sp=NULL,min.sp=NULL,H=NULL,gamma=1,fit=TRUE,paraPen=NULL,G=NULL),
            fitFunction = 'gam',
-           settingRules = function(x='sdmSettings',y='sdmChategories') {
-             o <- list()
-             if (x@distribution == 'ab') o[['family']] <- poisson
-             o
+           settingRules = function(x='sdmVariables',f='fitSettings') {
+             if (x@distribution == 'poisson') f[['family']] <- x@distribution
+             else if (x@distribution == 'multinomial') f[['family']] <- 'multinom'
+             
+             list(fitSettings=f)
            },
            tuneParams = NULL,
            predictParams=list(object='model',newdata='sdmDataFrame'),

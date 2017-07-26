@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,14 +10,14 @@ methodInfo <- list(name=c('rpart','RPART'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(model=FALSE,x=FALSE,y=FALSE,method='anova'),
                    fitFunction = 'rpart',
-                   settingRules = function(x,fitSettings,predictSettings) {
-                     if (x@distribution == 'ab') {
-                       fitSettings[['method']] <- 'poisson'
-                     } else if (x@distribution == 'n') {
-                       fitSettings[['method']] <- 'class'
-                       predictSettings[['type']] <- 'class'
+                   settingRules = function(x='sdmVariables',f='fitSettings',p='predictSettings') {
+                     if (x@distribution == 'poisson') {
+                       f[['method']] <- 'poisson'
+                     } else if (x@distribution == 'multinomial') {
+                       f[['method']] <- 'class'
+                       p[['type']] <- 'class'
                      }
-                     list(fitSettings=fitSettings,predictSettings=predictSettings)
+                     list(fitSettings=f,predictSettings=p)
                    },
                    tuneParams = NULL,
                    predictParams=list(object='model',newdata='sdmDataFrame'),

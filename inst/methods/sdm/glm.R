@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -12,9 +12,11 @@ methodInfo <-list(name=c('glm','GLM','lm'),
            fitParams = list(formula='standard.formula',data='sdmDataFrame'),
            fitSettings = list(family=binomial(link='logit'),weights=NULL,model=FALSE),
            fitFunction = 'glm',
-           settingRules = function(x,fitSettings) {
-             if (x@distribution == 'ab') fitSettings[['family']] <- poisson
-             fitSettings
+           settingRules = function(x='sdmVariables',f='fitSettings') {
+             if (x@distribution %in% c('poisson','multinomial')) {
+               f[['family']] <- x@distribution
+             }
+             list(fitSettings=f)
            },
            tuneParams = NULL,
            predictParams=list(object='model',newdata='sdmDataFrame'),

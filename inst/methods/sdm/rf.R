@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -13,11 +13,7 @@ methodInfo <- list(name=c('rf','RF','randomForest','rforest'),
                                       importance=TRUE
                    ),
                    fitFunction = 'randomForest',
-                   settingRules = function(x,fitSettings,predictSettings,userSettings=NULL) {
-                     if (!is.null(userSetting)) fitSettings <- .assign(fitSettings,userSettings)
-                     
-                     list(fitSettings=fitSettings,predictSettings=predictSettings)
-                   },
+                   settingRules = NULL,
                    tuneParams = NULL,
                    predictParams=list(object='model',newdata='sdmDataFrame'),
                    predictSettings=list(type='response'),

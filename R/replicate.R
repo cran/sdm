@@ -1,12 +1,13 @@
 # Author: Babak Naimi, naimi.b@gmail.com
 # Date :  April 2015
-# Version 2.0
+# last update: July 2017
+# Version 2.1
 # Licence GPL v3
 
 
 .replicateMethods=new('.ReplicateMethods')
 
-.replicateMethods$Methods['cross_validation'] <- new('.methodTemplate',
+.replicateMethods$Methods[['cross_validation']] <- new('.methodTemplate',
                                                      name='cross_validation',
                                                      aliases=c('cv','cross-validation'),
                                                      arguments=c(x='numeric',replicates='numeric',nfolds='numeric',stratify='logical',family='character'),
@@ -71,7 +72,7 @@
                                                      })
 
 
-.replicateMethods$Methods['bootstrap'] <- new('.methodTemplate',
+.replicateMethods$Methods[['bootstrap']] <- new('.methodTemplate',
                                               name='bootstrap',
                                               aliases=c('boot','bootstrapping','bootstraping'),
                                               arguments=c(x='numeric',replicates='numeric'),
@@ -133,7 +134,7 @@
                                                 oo
                                               })
 #-----
-.replicateMethods$Methods['subsampling'] <- new('.methodTemplate',
+.replicateMethods$Methods[['subsampling']] <- new('.methodTemplate',
                                                 name='subsampling',
                                                 aliases=c('sub','subsample'),
                                                 arguments=c(x='numeric',replicates='numeric',test.percent='numeric',stratify='logical',family='character'),

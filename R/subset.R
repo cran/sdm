@@ -1,6 +1,7 @@
 # Author: Babak Naimi, naimi.b@gmail.com
 # Date :  Feb. 2015
-# Version 1.0
+# Last update: JuLY 2017
+# Version 1.2
 # Licence GPL v3
 
 .deleteRecords <- function(x,id) {
@@ -199,14 +200,14 @@
 setMethod("[", c("sdmdata"),
           function(x, i, ...,drop=FALSE) {
             if (missing(i)) stop('i is missing!')
-            if(drop) .getDataFame(x,i)
+            if(drop) .getDataFame(x,i,...)
             else .subsetRecords(x,i)
           }
 )
 #--------
 
-setMethod("[[", c("sdmModels","ANY","ANY"),
-          function(x,i,drop=TRUE,...) {
+setMethod("[[", c("sdmModels"),
+          function(x,i,...,drop=TRUE) {
             if ( missing(i)) { stop('you must provide an index') }
             mi <- .getModel.info(x,w=i)
             if (nrow(mi) == 0) stop('the specified index in i are not within the range of model IDs')

@@ -56,6 +56,7 @@ head(df)
 # only the records with rID == c(1,2,3):
 as.data.frame(d, ind=1:3)
 }
+
 }
 
 \keyword{spatial}

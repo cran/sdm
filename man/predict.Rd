@@ -65,7 +65,37 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 \seealso{# }
 
 \examples{
-#
+\dontrun{
+
+file <- system.file("external/species.shp", package="sdm") # get the location of the species data
+
+species <- shapefile(file) # read the shapefile
+
+path <- system.file("external", package="sdm") # path to the folder contains the data
+
+lst <- list.files(path=path,pattern='asc$',full.names = T) # list the name of the raster files 
+
+
+# stack is a function in the raster package, to read/create a multi-layers raster dataset
+preds <- stack(lst) # making a raster object
+
+d <- sdmData(formula=Occurrence~., train=species, predictors=preds)
+
+d
+
+# fit the models (5 methods, and 10 replications using bootstrapping procedure):
+m <- sdm(Occurrence~.,data=d,methods=c('rf','tree','fda','mars','svm'),
+          replicatin='boot',n=10)
+    
+# predict for all the methods and replications:    
+p1 <- predict(m, newdata=preds, filename='preds.img')
+plot(p1)
+
+# predict for all the methods but take the mean over all replications for each replication method:
+p2 <- predict(m, newdata=preds, filename='preds.img',mean=T)
+plot(p2)
+
+}
 }
 
 \keyword{spatial,species,data}

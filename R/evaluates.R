@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  Oct. 2016
-# Version 1.3
+# Date (last update):  Jan. 2017
+# Version 1.4
 # Licence GPL v3
 #--------
 
@@ -54,7 +54,7 @@
   }
   
   w <- which(is.na(e[,"ppv"]) | is.na(e[,'npv']))
-  if (length(w) > 0) e <- e[-w,]
+  if (length(w) > 0) e <- e[-w,,drop=FALSE]
   
   # 1: Se=SP
   w1 <- which.min(abs(e[,"sensitivity"] - e[,"specificity"]))

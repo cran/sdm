@@ -41,8 +41,9 @@ roc generates the plots of roc curves, and getRoc generate the values of ROC
  an object of class \code{matrix}
 }
 
+
 \references{
-#
+Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for species distribution modelling, Ecography, 39:368-375, DOI: 10.1111/ecog.01881
 }
 
 \author{Babak Naimi \email{naimi.b@gmail.com}
@@ -52,10 +53,23 @@ roc generates the plots of roc curves, and getRoc generate the values of ROC
 \url{http://biogeoinformatics.org}
 }
 
-\seealso{# }
 
 \examples{
-#
+\dontrun{
+file <- system.file("external/model.sdm", package="sdm")
+
+m <- read.sdm(file) # a sdmModels Object (fitted using sdm function)
+
+roc(m)
+
+roc(m,1) # for the first model
+
+roc(m, 1:2)
+
+roc(m,method = 'glm',smooth = T) # only for models fitted using glm method & with smoothed curve
+
+
+}
 }
 
 \keyword{spatial,species,data}

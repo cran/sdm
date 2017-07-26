@@ -45,7 +45,7 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 
 \examples{
-\dontrun{
+
 
 
 e <- evaluates(x=c(1,1,0,1,0,0,0,1,1,1,0),
@@ -54,7 +54,7 @@ e <- evaluates(x=c(1,1,0,1,0,0,0,1,1,1,0),
 
 density(e)
 
-}
+
 }
 
 \keyword{spatial,data}

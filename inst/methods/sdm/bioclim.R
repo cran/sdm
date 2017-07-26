@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Nov. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,7 @@ methodInfo <- list(name=c('bioclim','Bioclim'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(c=2,weights=NULL),
                    fitFunction = '.bioclimFit',
-                   settingRules = function(x,fitSettings,predictSettings) {
-                     #
-                   },
+                   settingRules = NULL,
                    tuneParams = NULL,
                    predictParams=list(object='model',newdata='sdmDataFrame'),
                    predictSettings=NULL,

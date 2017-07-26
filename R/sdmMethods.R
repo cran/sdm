@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last uodate):  Nov. 2016
-# Version 2.1
+# Date (last uodate):  July 2017
+# Version 2.2
 # Licence GPL v3
 
 
@@ -38,6 +38,7 @@ setMethod('getmethod', signature(x='character'),
             #dot <- list(...)
             if (missing(w)) w <- 'sdm'
             if (w == 'sdm') {
+              if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
               x <- .methodFix(x)
               if (!is.na(x)) .sdmMethods$Methods[[x]]
               else stop('the specified method does not exist!')

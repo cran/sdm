@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,9 @@ methodInfo <- list(name=c('mars','MARS','earth'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(weights=NULL,pmethod='none',trace=0,glm=list(family=binomial)),
                    fitFunction = 'earth',
-                   settingRules = function(x,fitSettings) {
-                     if (x@distribution == 'ab') fitSettings[['glm']] <- list(family=poisson)
-                     fitSettings
+                   settingRules = function(x='sdmVariables',f='fitSettings') {
+                     if (x@distribution == 'poisson') f[['glm']] <- list(family=poisson)
+                     list(fitSettings=f)
                    },
                    tuneParams = list(glm=c(NULL,'default')),
                    predictParams=list(object='model',newdata='sdmDataFrame'),

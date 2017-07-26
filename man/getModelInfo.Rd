@@ -43,13 +43,13 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 \seealso{# }
 
 \examples{
-\dontrun{
+
 file <- system.file("external/model.sdm", package="sdm")
 
 m <- read.sdm(file)
 
 getModelInfo(m)
-}
+
 }
 
 \keyword{spatial,species,data}

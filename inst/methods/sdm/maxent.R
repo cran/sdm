@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update) :  Nov. 2016
-# Version 1.1
+# Date (last update) :  July 2017
+# Version 1.2
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,7 @@ methodInfo <- list(name=c('maxent','Maxent','MAXENT','entropy','maxentropy'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(beta=1,prevalence=0.5,feat='autofeature',args=NULL),
                    fitFunction = '.maxent',
-                   settingRules = function(x,fitSettings,predictSettings) {
-                     #
-                   },
+                   settingRules = NULL,
                    tuneParams = NULL,
                    predictParams=list(object='model',x='sdmDataFrame'),
                    predictSettings=NULL,

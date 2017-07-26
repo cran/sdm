@@ -75,4 +75,19 @@ setMethod('as.data.frame', signature(x='sdmdata'),
             .getSdmDataFrame(x,...)
           }
 )
+#-------
+setAs('sdmdata', 'data.frame',
+      function(from) {
+        as.data.frame(from)
+      }
+)
 
+#-------
+setAs('sdmdata', 'SpatialPointsDataFrame',
+      function(from) {
+        if (!is.null(from@info) && !is.null(from@info@coords)) {
+          SpatialPointsDataFrame(coords=coordinates(from),data=as.data.frame(from),
+                                 proj4string = if (is.null(from@info@crs)) CRS(as.character(NA)) else from@info@crs)
+        }
+      }
+)

@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -20,12 +20,18 @@ methodInfo <- list(name=c('brt','BRT','gbm','GBM'),
                                      verbose = "CV",
                                      class.stratify.cv=NULL),
                   fitFunction = 'gbm',
-                  settingRules = function(x,fitSettings,predictSettings,userSettings=NULL) {
-                    if (!is.null(userSetting)) fitSettings <- .assign(fitSettings,userSettings)
-                    else if (x@distribution == 'ab') fitSettings[['distribution']] <- "poisson"
-                    else if (x@distribution == 'n') fitSettings[['distribution']] <- "multinomial"
-                    
-                    list(fitSettings=fitSettings,predictSettings=predictSettings)
+                  settingRules = function(x='sdmVariables',f='fitSettings') {
+                    #if (!is.null(userSetting)) fitSettings <- .assign(fitSettings,userSettings)
+                    #else if (x@distribution == 'ab') fitSettings[['distribution']] <- "poisson"
+                    #else if (x@distribution == 'n') fitSettings[['distribution']] <- "multinomial"
+                    if (x@distribution %in% c('poisson','multinomial')) {
+                        f[['distribution']] <- x@distribution
+                    }
+                    if (x@number.of.records[1] < 55) {
+                      f[['n.minobsinnode']] <- max(floor(x@number.of.records[1] / 5),3)
+                      if (x@number.of.records[1] < 30) f[['bag.fraction']] <- 0.9
+                    }
+                    list(fitSettings=f)
                   },
                   tuneParams = NULL,
                   predictParams=list(object='model',newdata='sdmDataFrame'),

@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  March. 2016
-# Version 1.0
+# Date (last update):  July 2017
+# Version 1.1
 # Licence GPL v3
 
 #-------------
@@ -10,9 +10,7 @@ methodInfo <- list(name=c('cart','CART','tree'),
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = list(method = "recursive.partition",split = "deviance",x=FALSE,y=FALSE,wts=FALSE,model=FALSE),
                    fitFunction = 'tree',
-                   settingRules = function(x,fitSettings) {
-                     fitSettings
-                   },
+                   settingRules = NULL,
                    tuneParams = NULL,
                    predictParams=list(object='model',newdata='sdmDataFrame'),
                    predictSettings=list(type='vector'),

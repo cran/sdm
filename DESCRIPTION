@@ -1,24 +1,25 @@
 Package: sdm
 Type: Package
 Title: Species Distribution Modelling
-Version: 1.0-32
-Date: 2016-12-01
+Version: 1.0-41
+Date: 2017-07-26
 Author: Babak Naimi, Miguel B. Araujo
 Maintainer: Babak Naimi <naimi.b@gmail.com>
-Depends: methods, sp (>= 1.0-13)
+Depends: methods, sp (>= 1.2-0), R (>= 3.0.0)
 Imports: raster
-Suggests: rgdal (>= 0.8-12), knitr, shinyBS, shiny, dismo
-Description: An extensible R framework for developing species distribution
+Suggests: rgdal (>= 0.9-1), knitr, shinyBS, shiny, dismo, rmarkdown
+Description: An extensible framework for developing species distribution
     models using individual and community-based approaches, generate ensembles of
     models, evaluate the models, and predict species potential distributions in
-    space and time.
+    space and time. For more information, please check the following paper:
+    Naimi, B., Araujo, M.B. (2016) <doi:10.1111/ecog.01881>.
 License: GPL (>= 3)
 URL: http://biogeoinformatics.org
 VignetteBuilder: knitr
 Repository: CRAN
 Repository/R-Forge/Project: sdm
-Repository/R-Forge/Revision: 57
-Repository/R-Forge/DateTimeStamp: 2016-12-01 19:11:57
-Date/Publication: 2016-12-02 23:13:39
+Repository/R-Forge/Revision: 63
+Repository/R-Forge/DateTimeStamp: 2017-07-26 18:33:47
+Date/Publication: 2017-07-26 22:13:23 UTC
 NeedsCompilation: no
-Packaged: 2016-12-02 09:46:29 UTC; rforge
+Packaged: 2017-07-26 18:46:15 UTC; rforge

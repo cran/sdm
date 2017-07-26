@@ -10,9 +10,7 @@ methodInfo <- list(name=c('bioclim.dismo','BioclimDismo','bioclimDismo','bioclim
                    fitParams = list(formula='standard.formula',data='sdmDataFrame'),
                    fitSettings = NULL,
                    fitFunction = '.bioclimDismo',
-                   settingRules = function(x,fitSettings,predictSettings) {
-                     #
-                   },
+                   settingRules = NULL,
                    tuneParams = NULL,
                    predictParams=list(object='model',x='sdmDataFrame'),
                    predictSettings=NULL,

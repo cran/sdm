@@ -1,7 +1,7 @@
 \name{sdm}
 
 \alias{sdm}
-\alias{sdm,formula,sdmdata,character-method}
+\alias{sdm,ANY,sdmdata,character-method}
 
 
 \title{Fit and evaluate species distribution models}
@@ -47,7 +47,7 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 \url{http://biogeoinformatics.org}
 }
 
-\seealso{# }
+
 
 \examples{
 \dontrun{
@@ -81,6 +81,14 @@ m
 
 m <- sdm(sp~.,data=d,methods=c('gbm','tree','mars','mda','fda'),
           replication=c('cv','boot'),cv.folds=5,n=10)
+
+m
+
+# Example 4: fit using 3 models; evaluate the models using subsampling, 
+# and override the default settings for the method brt:
+
+m <- sdm(sp~b15+NDVI,data=d,methods=c('glm','gam','brt'),test.p=30,
+          modelSettings=list(brt=list(n.trees=500,train.fraction=0.8)))
 
 m
 

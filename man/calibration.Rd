@@ -47,7 +47,7 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 
 \examples{
-\dontrun{
+
 
 
 ca <- calibration(x=c(1,1,0,1,0,0,0,1,1,1,0),
@@ -57,7 +57,7 @@ ca
 
 plot(ca)
 
-}
+
 }
 
 \keyword{spatial,species,data}
