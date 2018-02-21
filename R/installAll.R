@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  July 2016
-# Version 1.4
+# Date :  Feb. 2018
+# Version 1.5
 # Licence GPL v3
 #--------
 
@@ -15,7 +15,7 @@
     p <- p[!p == '.tmp']
     pkgs <- c(pkgs,p)
   }
-  p <- c('shiny','rgdal','raster','shinyBS','leaflet')
+  p <- c('shiny','rgdal','raster','shinyBS','leaflet','usdm')
   unique(c(pkgs,p))
 }
 

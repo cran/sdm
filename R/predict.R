@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Nov. 2016
-# Version 2.5
+# Date (last update):  Dec. 2017
+# Version 2.7
 # Licence GPL v3
 
 
@@ -55,48 +55,50 @@
 }
 
 #-----------
-.raster2df <- function(x,nFact) {
-  n <- names(x)
-  d <- data.frame(getValues(x))
-  colnames(d) <- n
-  d <- data.frame(cellnr=1:ncell(x),d)
-  bb <- rep(TRUE,nrow(d))
-  for (i in 2:ncol(d)) bb <- bb & !is.na(d[,i])
-  if (length(which(bb)) == 0) stop('raster object has no data...!')
-  d <- d[bb,]
-  rm(bb)
-  
-  if (!missing(nFact) && !is.null(nFact)) {
-    for (i in seq_along(nFact)) {
-      d[,nFact[i]] <- factor(d[,nFact[i]])
-    }
-  }
-  d
-}
-#----------------
-# .raster2df <- function(x,level) {
-#   d <- data.frame(cellnr=1:ncell(x),as.data.frame(x))
+# .raster2df <- function(x,nFact) {
+#   n <- names(x)
+#   d <- data.frame(getValues(x))
+#   colnames(d) <- n
+#   d <- data.frame(cellnr=1:ncell(x),d)
 #   bb <- rep(TRUE,nrow(d))
 #   for (i in 2:ncol(d)) bb <- bb & !is.na(d[,i])
 #   if (length(which(bb)) == 0) stop('raster object has no data...!')
 #   d <- d[bb,]
 #   rm(bb)
 #   
-#   if (!missing(level) && !is.null(level)) {
-#     n <- names(level)
-#     for (i in seq_along(n)) {
-#       l <- level[[i]]
-#       u <- sort(unique(d[,n[i]]))
-#       if (any(u %in% c(1:length(l)))) {
-#         u <- u[u %in% c(1:length(l))]
-#         l <- l[u]
-#         d[,n[i]] <- factor(d[,n[i]])
-#         levels(d[,n[i]]) <- l
-#       } else stop('the grid values in categorical rasters does not match with the factor levels in the model')
+#   if (!missing(nFact) && !is.null(nFact)) {
+#     for (i in seq_along(nFact)) {
+#       d[,nFact[i]] <- factor(d[,nFact[i]])
 #     }
 #   }
 #   d
 # }
+#----------------
+.raster2df <- function(x,level) {
+  d <- data.frame(cellnr=1:ncell(x),as.data.frame(x))
+  bb <- rep(TRUE,nrow(d))
+  for (i in 2:ncol(d)) bb <- bb & !is.na(d[,i])
+  if (length(which(bb)) == 0) stop('raster object has no data...!')
+  d <- d[bb,]
+  rm(bb)
+
+  if (!missing(level) && !is.null(level) && all(names(level) %in% names(d))) {
+    n <- names(level)
+    for (i in seq_along(n)) {
+      l <- level[[i]]
+      u <- sort(unique(d[,n[i]]))
+      d[,n[i]] <- factor(d[,n[i]])
+      levels(d[,n[i]]) <- l
+      # if (any(u %in% c(1:length(l)))) {
+      #   u <- u[u %in% c(1:length(l))]
+      #   l <- l[u]
+      #   d[,n[i]] <- factor(d[,n[i]])
+      #   levels(d[,n[i]]) <- l
+      # } else stop('the grid values in categorical rasters does not match with the factor levels in the model')
+    }
+  }
+  d
+}
 #----------------
 
 .generateName <- function(x) {
@@ -182,7 +184,8 @@ if (!isGeneric("predict")) {
     n <- names(newdata)
     if (!all(x@setting@featuresFrame@vars %in% n)) stop('the data does not contain some or all of the variables that the model needs...')
     w$newdata$raster <- newdata
-    w$newdata$data.frame <- .raster2df(newdata,nFact)
+    #w$newdata$data.frame <- .raster2df(newdata,nFact)
+    w$newdata$data.frame <- .raster2df(newdata,.getlevels(x@data)[nFact])
     
     w$modelFrame <- .getModelFrame(x@setting@featuresFrame,w$newdata$data.frame,response=species)
     
@@ -503,12 +506,12 @@ setMethod('predict', signature(object='sdmModels'),
                     re <- unique(as.character(m2$replication))
                     for (r in re) {
                       m3 <- m2[which(m2$replication == r),]
-                      w <- which(mid %in% m3$modelID)
+                      .w <- which(mid %in% m3$modelID)
                       
-                      if (length(w) > 1) {
-                        temp <- calc(b[[w]],function(x) mean(x,na.rm=TRUE))
+                      if (length(.w) > 1) {
+                        temp <- calc(b[[.w]],function(x) mean(x,na.rm=TRUE))
                         newr <- addLayer(newr,temp)
-                      } else newr <- addLayer(newr,b[[w]])
+                      } else newr <- addLayer(newr,b[[.w]])
                       rnames <- c(rnames,paste('sp_',m3$speciesID[1],'-m_',mo,paste('-re_',paste(strsplit(r,'')[[1]][1:4],collapse=''),sep=''),sep=''))
                       newfullnames <- c(newfullnames,paste('species_',sp,'-method_',mo,paste('-replication (Mean)_',m3$replication[1],sep=''),sep=''))
                     }
@@ -530,12 +533,12 @@ setMethod('predict', signature(object='sdmModels'),
                     re <- unique(as.character(m2$replication))
                     for (r in re) {
                       m3 <- m2[which(m2$replication == r),]
-                      w <- which(mid %in% m3$modelID)
+                      .w <- which(mid %in% m3$modelID)
                       
-                      if (length(w) > 1) {
-                        temp <- apply(mtx[,w],1,function(x) mean(x,na.rm=TRUE))
+                      if (length(.w) > 1) {
+                        temp <- apply(mtx[,.w],1,function(x) mean(x,na.rm=TRUE))
                         newmtx <- cbind(newmtx,temp)
-                      } else newmtx <- cbind(newmtx,mtx[,w])
+                      } else newmtx <- cbind(newmtx,mtx[,.w])
                       rnames <- c(rnames,paste('sp_',m3$speciesID[1],'-m_',mo,paste('-re_',paste(strsplit(r,'')[[1]][1:4],collapse=''),sep=''),sep=''))
                       #fullnames <- c(fullnames,paste('species_',sp,'-method_',mo,paste('-replication (Mean)_',m3$replication[1],sep=''),sep=''))
                     }

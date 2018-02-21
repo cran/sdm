@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date of last update :  Nov. 2016
-# Version 2.4
+# Date of last update :  Feb. 2018
+# Version 2.6
 # Licence GPL v3
 
 #------
@@ -213,9 +213,9 @@
         } else s <- 1
       }
       s <- d@species.names[s]
-      hP <- .getHingeParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value)
-      .getFeature.hinge(d@features[rid,n],increasing=hP$increasing,th=hP$threshold)
-    } else .getFeature.hinge(d@features[rid,n],th=th)
+      hP <- .getHingeParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value) # should be updated!
+      .getFeature.hinge(d@features[rid,n],nknots=10) # should be updated!!
+    } else .getFeature.hinge(d@features[rid,n],nknots=10) # should be updated!
     
   } else if (type %in% c('th','threshold')) {
     if ('th' %in% names(dot)) th <- dot[['th']]
@@ -1246,7 +1246,7 @@ setMethod('sdmData', signature(train='SpatialPoints',predictors='Raster'),
             } 
             
             if (!is.null(bg)) {
-              if (is.list(bg)) {
+              if (inherits(bg,'list')) {
                 nbg <- names(bg)
                 nbg <- .pmatch(nbg,c('n','method','remove'))
                 if ('n' %in% nbg) n <- bg[['n']]

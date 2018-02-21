@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  July. 2016
-# Version 2.2
+# Date :  Feb. 2018
+# Version 2.3
 # Licence GPL v3
 
 
@@ -175,11 +175,14 @@ setMethod("plot", signature(x='.varImportance'),
             if (!'horiz' %in% ndot) dot[['horiz']] <- TRUE
             if (!'names.arg' %in% ndot) dot[['names.arg']] <- x@variables
             if (!'col' %in% ndot) dot[['col']] <-'#DDE9EB'
+            if (!'cex.names' %in% ndot) dot[['cex.names']] <- 0.8
+            if (!'las' %in% ndot) dot[['las']] <- 1
             dot[['height']] <- x@varImportance[,y]
             
             do.call(barplot,dot)
           }
 )
+
 #-------
 if (!isGeneric("boxplot")) {
   setGeneric("boxplot", function(x, ...)

@@ -2,6 +2,8 @@
 
 \alias{sdm}
 \alias{sdm,ANY,sdmdata,character-method}
+\alias{sdm,sdmdata,.sdmCorSetting,ANY-method}
+\alias{sdm,ANY,sdmdata,.sdmCorSetting-method}
 
 
 \title{Fit and evaluate species distribution models}

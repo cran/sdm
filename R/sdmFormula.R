@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  Oct. 2016
-# Version 1.1
+# Date :  Jan. 2018
+# Version 1.2
 # Licence GPL v3
 
 .newFormulaFunction <- function(cls,name,args,getFeature) {
@@ -23,11 +23,11 @@
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.hinge',
                                                             representation(x='character',
-                                                                           threshold='numeric',
-                                                                           increasing='logical',
+                                                                           thresholds='numeric',
+                                                                           knots='numeric',
                                                                            term='call'
                                                             ))),
-                                         name=c('hinge','h','H','Hinge','hing','Hing'),args=c('x','threshold','increasing')))
+                                         name=c('hinge','h','H','Hinge','hing','Hing'),args=c('x','nknots')))
 
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.quad',

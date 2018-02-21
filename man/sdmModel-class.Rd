@@ -19,7 +19,7 @@
 \alias{data.frameORnull-class}
 \alias{functionORcharacter-class}
 \alias{environmentORnull-class}
-
+\alias{expressionORnull-class}
 
 \alias{show,sdmModels-method}
 

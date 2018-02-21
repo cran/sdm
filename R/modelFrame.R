@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Nov. 2016
-# Version 1.1
+# Date (last update):  Feb. 2018
+# Version 1.3
 # Licence GPL v3
 
 .getFeature.linear <- function(x) {
@@ -25,12 +25,13 @@
 
 
 #-------
-.getFeature.hinge <- function(x,th,increasing) {
-  if (increasing) {
-    .hinge(x,th)
-  } else {
-    .invhinge(x,th)
-  }
+.getFeature.hinge <- function(x,nknots) {
+  # if (increasing) {
+  #   .hinge(x,th)
+  # } else {
+  #   .invhinge(x,th)
+  # }
+  .hinge(x,nknots)
 }
 #-------
 .getFeature.threshold <- function(x,th,increasing) {
@@ -375,7 +376,7 @@
         n <- colnames(temp)
         d[[n]] <- as.vector(temp[,1])
       } else if (ft[[i]] == 'threshold') d[[fn[[i]]]] <- .getFeature.threshold(data[,n[[i]]],th = x@feature.types[[i]]@params$threshold,increasing=x@feature.types[[i]]@params$increasing)
-      else if (ft[[i]] == 'hinge') d[[fn[[i]]]] <- .getFeature.hinge(data[,n[[i]]],th = x@feature.types[[i]]@params$threshold,increasing=x@feature.types[[i]]@params$increasing)
+      else if (ft[[i]] == 'hinge') d[[fn[[i]]]] <- .getFeature.hinge(data[,n[[i]]],nknots = x@feature.types[[i]]@params$nknots)
     }
     if (!is.null(x@response.specific)) {
       sp <- lapply(x@response.specific, function(x) x@response)
@@ -392,7 +393,7 @@
         ft <- lapply(x@response.specific,function(x) x@type)
         for (i in 1:length(n)) {
           if (ft[[i]] == 'threshold') dd[[fn[[i]]]] <- .getFeature.threshold(data[,n[[i]]],th = x@response.specific[[i]]@params$threshold,increasing=x@response.specific[[i]]@params$increasing)
-          else if (ft[[i]] == 'hinge') dd[[fn[[i]]]] <- .getFeature.hinge(data[,n[[i]]],th = x@response.specific[[i]]@params$threshold,increasing=x@response.specific[[i]]@params$increasing)
+          else if (ft[[i]] == 'hinge') dd[[fn[[i]]]] <- .getFeature.hinge(data[,n[[i]]],nknots = x@feature.types[[i]]@params$nknots)
         }
         o[[s]] <- dd
       }

@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date :  April 2016
-# Version 1.1
+# Date (last update):  August 2017
+# Version 1.2
 # Licence GPL v3
 #--------
 
@@ -40,7 +40,7 @@ setMethod('write.sdm', signature(x='sdmdata',filename='character'),
             if (missing(overwrite)) overwrite <- FALSE
             filename <- .trim(filename)
             if (extension(filename) == '') filename <- paste(filename,'.sdd',sep='')
-            else if (extension(filename) != '.sds') filename <- paste(filename,'.sds',sep='')
+            else if (extension(filename) != '.sdd') filename <- paste(filename,'.sdd',sep='')
             if (!overwrite && file.exists(filename)) stop('a file with the same name exists; choose different name or use overwrite=TRUE')
             saveRDS(x,file=filename,...)
           }
