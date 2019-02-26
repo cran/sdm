@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last uodate):  July 2017
-# Version 2.2
+# Date (last uodate):  Feb. 2019
+# Version 2.5
 # Licence GPL v3
 
 
@@ -63,21 +63,6 @@ setMethod('getmethodNames', signature(w='ANY'),
 )
 
 
-if (!isGeneric("getModelInfo")) {
-  setGeneric("getModelInfo", function(x,...)
-    standardGeneric("getModelInfo"))
-}
-
-
-setMethod('getModelInfo', signature(x='sdmModels'), 
-          function(x,w,...) {
-            if (missing(w)) w <- NULL
-            .getModel.info(x,w,...)
-            
-          }
-)
-
-
 
 .addMethods <- function() {
   methodInfo <- NULL
@@ -89,18 +74,12 @@ setMethod('getModelInfo', signature(x='sdmModels'),
     pkg <- methodInfo$packages
     pkg <- pkg[!pkg == '.tmp']
     if (!methodInfo$name[1] %in% n && all(.is.installed(pkg))) {
-      add(x=methodInfo,'sdm',echo=FALSE)
+      try(add(x=methodInfo,'sdm',echo=FALSE),silent = TRUE)
     }
   }
   .sdmOptions$addOption('sdmLoaded',TRUE)
 }
 
-.is.installed <- function(n) {
-  inst <- utils::installed.packages()[,1]
-  nn <- n %in% inst
-  names(nn) <- n
-  nn
-}
 
 
 .create.sdmCorrelativeMethod <- function(name,packages=NULL,modelTypes=NULL,fitParams,fitSettings=NULL,settingRules=NULL,fitFunction,predictParams=NULL,predictSettings=NULL,predictFunction=NULL,tuneParams=NULL,metadata=NULL,...) {

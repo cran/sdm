@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  February 2018
-# Version 4.0
+# Date (last update):  Feb. 2019
+# Version 4.4
 # Licence GPL v3
 
 
@@ -1290,8 +1290,8 @@ setRefClass(".workload",
               filename='characterORnull'
             ),
             methods=list(
-              fit=function(w,species,models,runs,hasTest,.parMethod=.self$setting@parallelSettings@method,.hostnames=.self$setting@parallelSettings@hosts,.fork=.self$setting@parallelSettings@fork,filename=.self$filename) {
-                .fit(.self,species=species,runs=runs,hasTest = hasTest,.parMethod=.parMethod,.hostnames = .hostnames,.fork = .fork,filename = filename)
+              fit=function(woL=.self,species,models,runs,hasTest,.parMethod=.self$setting@parallelSettings@method,.hostnames=.self$setting@parallelSettings@hosts,.fork=.self$setting@parallelSettings@fork,filename=.self$filename) {
+                .fit(woL=woL,species=species,runs=runs,hasTest = hasTest,.parMethod=.parMethod,.hostnames = .hostnames,.fork = .fork,filename = filename)
               },
               getSdmVariables=function(sp,nFact) {
                 if (length(.self$sdmVariables) > 0 && !is.null(.self$sdmVariables[[sp]])) .self$sdmVariables[[sp]]
@@ -1648,3 +1648,31 @@ setClass('.bioclimModel',
            weights='numericORnull'
          )
 )
+#--------
+setClass(".responseCurve",
+         representation(
+           variables='character',
+           categorical='characterORnull',
+           multi='logical',
+           response='list'
+         )
+)
+#------
+
+setClass(".nicheRaster",
+         representation(
+           names='characterORnull',
+           nicheRaster='RasterLayer',
+           scaleParams='data.frame'
+         )
+)
+#----------
+setClass(".envSpace",
+         representation(
+           names='character',
+           coords='data.frameORnull',
+           scaledVariables='list',
+           scaleParams='data.frame'
+         )
+)
+#----------

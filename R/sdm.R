@@ -1,11 +1,12 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  February 2018
-# Version 3.2
+# Date (last update):  October 2018
+# Version 3.9
 # Licence GPL v3
 #--------
 
 
 .methodFix <- function(n) {
+  .addMethods()
   for (i in seq_along(n)) {
     nx <- .sdmMethods$whichMethod(n[i])
     if (!is.null(nx)) n[i] <- nx
@@ -15,6 +16,7 @@
 }
 #----------
 .replicate.methodFix <- function(n) {
+  .addMethods()
   for (i in seq_along(n)) {
     nx <- .replicateMethods$whichMethod(n[i])
     if (!is.null(nx)) n[i] <- nx
@@ -277,27 +279,7 @@
 }
 
 #-----------
-.require <- function(x) {
-  # based on simplifying the code of the reqiure function in the base package
-  loaded <- paste("package", x, sep = ":") %in% search()
-  if (!loaded) {
-    value <- tryCatch(library(x,character.only = TRUE, logical.return = TRUE, warn.conflicts = FALSE, quietly = TRUE), error = function(e) e)
-    if (inherits(value, "error")) {
-      return(FALSE)
-    }
-    if (!value) return(FALSE)
-  } else value <- TRUE
-  value
-}
-#----------
-.loadLib <- function(pkgs) {
-  options(warn=-1)
-  return(unlist(lapply(pkgs,function(x) {
-    all(unlist(lapply(x,function(p) {.require(p)})))
-  })))
-  options(warn=0)
-}
-#---------
+
 .getRecordID <- function(x,sp,id,train) {
   # x is recordID list
   # it finds the record ID of observation by the rowID used to generate train or dependent test, or in independent test
@@ -930,7 +912,7 @@ setMethod('sdmSetting', signature(formula='ANY','sdmdata','character'),
                   warning('parallelisation method is not recognised; the default value ("parallel") is used!')
                   s@parallelSettings@method <- 'parallel'
                 }
-              }
+              } else s@parallelSettings@method <- 'parallel'
               #--
               if ('fork' %in% nparallel) {
                 if (is.logical(parallelSettings$fork)) {
@@ -954,7 +936,10 @@ setMethod('sdmSetting', signature(formula='ANY','sdmdata','character'),
               
             } else {
               if (!is.null(sobj)) s@parallelSettings <- sobj@parallelSettings
-              else s@parallelSettings@ncore <- ncore
+              else {
+                s@parallelSettings@ncore <- ncore
+                s@parallelSettings@fork <- !.is.windows()
+              }
             }
             
             #---------
@@ -1199,7 +1184,7 @@ setMethod('sdm', signature(formula='ANY',data='sdmdata',methods='.sdmCorSetting'
                           warning('parallelisation method is not recognised; the default value ("parallel") is used!')
                           s@parallelSettings@method <- 'parallel'
                         }
-                      }
+                      } else s@parallelSettings@method <- 'parallel'
                       #--
                       if ('fork' %in% nparallel) {
                         if (is.logical(parallelSettings$fork)) {
@@ -1228,7 +1213,7 @@ setMethod('sdm', signature(formula='ANY',data='sdmdata',methods='.sdmCorSetting'
             if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
             
             w <- .generateWL(data,s, filename = filename)
-            w <- w$fit()
+            w <- w$fit(woL=w)
             #if (".sdmMethods$userFunctions" %in% search()) detach('.sdmMethods$userFunctions')
             if (".sdm...temp" %in% ls(pattern='^.sdm..',pos=1,all.names = TRUE)) {
               ww <- ls(.sdmMethods$userFunctions)
@@ -1311,7 +1296,7 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
                           warning('parallelisation method is not recognised; the default value ("parallel") is used!')
                           s@parallelSettings@method <- 'parallel'
                         }
-                      }
+                      } else s@parallelSettings@method <- 'parallel'
                       #--
                       if ('fork' %in% nparallel) {
                         if (is.logical(parallelSettings$fork)) {
@@ -1338,7 +1323,7 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
               }
             
             w <- .generateWL(d,s,filename = filename)
-            w <- w$fit()
+            w <- w$fit(woL=w)
             #if (".sdmMethods$userFunctions" %in% search()) detach('.sdmMethods$userFunctions')
             if (".sdm...temp" %in% ls(pattern='^.sdm..',pos=1,all.names = TRUE)) {
               ww <- ls(.sdmMethods$userFunctions)
@@ -1396,97 +1381,7 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
 #   } else x@run.info[x@run.info[,1] %in% w,]
 # }
 #--------
-.getModel.info <- function(x,w=NULL,species=NULL,method=NULL,replication=NULL,run=NULL) {
-  if (missing(w) || is.null(w)) {
-    
-    w1 <- w2 <- w3 <- w4 <- TRUE
-    if (!is.null(species)) {
-      species <- .pmatch(species,unique(as.character(x@run.info[,2])))
-      w1 <- x@run.info[,2] %in% species
-    }
-    
-    if (!is.null(method)) {
-      method <- .methodFix(method)
-      w2 <- x@run.info[,3] %in% method
-    }
-    
-    
-    if (!is.null(replication)) {
-      if (length(x@replicates) != 0) {
-        replication <- .replicate.methodFix(replication)
-        w3 <- x@run.info[,4] %in% replication
-      }
-    }
-    
-    if (!is.null(run)) {
-      if (!is.null(run)) {
-        if (length(x@replicates) != 0) {
-          r <- unlist(lapply(x@replicates[[1]],function(x) x$method))
-          ru <- unique(r)
-          names(ru) <- ru
-          rID <- lapply(ru,function(x) which(r == x))
-          w4 <- c()
-          for (i in 1:length(rID)) {
-            w4 <- c(w4,rID[[i]][c(1:length(rID[[i]])) %in% run])
-          }
-          
-          w4 <- x@run.info[,5] %in% w4
-        }
-      }
-    }
-    x@run.info[w1 & w2 & w3 & w4,]
-  } else x@run.info[x@run.info[,1] %in% w,]
-}
 
-#--------
-
-
-.getModel.info2 <- function(x,w=NULL,species=NULL,method=NULL,replication=NULL,run=NULL,wtest=NULL) {
-  # comparing to .getModel.info: In this, only one species is allowed!
-  # x: sdmModels
-  if (!is.null(w)) {
-    mi <- .getModel.info(x,w)
-  } else {
-    mi <- .getModel.info(x)
-    u <- as.character(unique(mi[,2]))
-    m <- as.character(unique(mi[,3]))
-    r <- unique(mi[,4])
-    if (!is.null(species)) {
-      if (length(species) > 1) {
-        species <- species[1]
-        warning('only the first species is considered!')
-      }
-      if (is.numeric(species)) {
-        if (length(u) <= species) species <- u[species]
-        else stop('The specified species is not recognised!')
-      } else {
-        species <- .pmatch(species,u)
-        if (is.na(species)) stop('The specified species is not recognised!')
-      }
-    } else {
-      if (length(u) > 1) stop('This object contains models for more than one species; in species argument spcify the name of species!')
-      else species <- u
-    }
-    
-    if (!is.null(method)) {
-      method <- .sdmMethods$fixNames(method)
-      wm <- method %in% m
-      if (any(!wm)) {
-        if (all(!wm)) stop('the specified methods do not exist in the object!')
-        warning(paste('Methods',paste(method[!wm],collapse=', '),'do not exsit in the object, and are excluded!'))
-        method <- method[wm]
-      }
-    } else method <- m
-    
-    if (!is.null(replication)) replication <- .replicate.methodFix(replication)
-    else replication <- r
-    
-    mi <- .getModel.info(x,species=species,method=method,replication=replication,run=run)
-  }
-  
-  mi
-}
-#---------
 ###########################
 #####################################################################
 
@@ -1772,38 +1667,38 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
 #----------
 
 
-.fit=function(w,species,models,runs,hasTest,.parMethod='parallel',.hostnames=NULL,.fork=TRUE,filename=NULL,compress=TRUE) {
+.fit=function(woL,species,models,runs,hasTest,.parMethod='parallel',.hostnames=NULL,.fork=TRUE,filename=NULL,compress=TRUE) {
   if (missing(species)) {
-    if (length(w$train) > 0) species <- names(w$train)
+    if (length(woL$train) > 0) species <- names(woL$train)
     else stop('no species is available!')
   }
   
-  if (missing(models)) models <- names(w$funs$fit)
+  if (missing(models)) models <- names(woL$funs$fit)
   names(models) <- models
   if (missing(runs)) {
-    if (length(w$replicates) == 0) {
+    if (length(woL$replicates) == 0) {
       runs <- NULL
       n.total <- length(models)*length(species)
     } else {
-      runs <- 1:length(w$replicates[[1]])
+      runs <- 1:length(woL$replicates[[1]])
       n.total <- length(models)*length(species)*length(runs)
     }
   } else {
     if (is.null(runs)) n.total <- length(models)*length(species)
     else {
-      runs <- runs[runs %in% c(1:length(w$replicates[[1]]))]
+      runs <- runs[runs %in% c(1:length(woL$replicates[[1]]))]
       if (length(runs) == 0) stop('all the specified runs index do not exist in the replications')
       n.total <- length(models)*length(species)*length(runs)
     }
   }
   
-  if (missing(hasTest)) hasTest <- !is.null(w$test)
+  if (missing(hasTest)) hasTest <- !is.null(woL$test)
   
-  if (is.null(w$ncore)) nc <- 1L
+  if (is.null(woL$ncore)) nc <- 1L
   else {
     .require('parallel')
     nc <- detectCores()
-    if (w$ncore < nc) nc <- w$ncore
+    if (woL$ncore < nc) nc <- woL$ncore
     if (.is.windows() || 'maxent' %in% models) .fork <- FALSE
   }
   #----####################
@@ -1814,25 +1709,29 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
   
   if (!is.null(runs)) {
     .run.info[,c(5,3,2)] <- expand.grid(runs,models,species)
-    .run.info[,4] <- rep(unlist(lapply(w$replicates[[1]],function(x) x$method)),length.out=n.total)
+    .run.info[,4] <- rep(unlist(lapply(woL$replicates[[1]],function(x) x$method)),length.out=n.total)
   } else {
     .run.info[,3:2] <- expand.grid(models,species)
   }
-  sm <- new('sdmModels',replicates=w$replicates,data=w$data,setting=w$setting,recordIDs=w$recordIDs,run.info=.run.info)
+  sm <- new('sdmModels',replicates=woL$replicates,data=woL$data,setting=woL$setting,recordIDs=woL$recordIDs,run.info=.run.info)
   #--------- RUN....:
   
   
   .memo <- NULL
-  if (.require("mraster")) {
-    .memo <- eval(expression({memory(session=TRUE,echo=FALSE)}))
-    .wf <- eval(parse(text = "mraster:::.change_unit(utils::object.size(w$data@features)*150,'B','M')[[1]]")) # guessing the size of modelObj
-    .mf <- floor(0.75 * ( .memo[2] /  .wf) )[[1]] # how many modelObj fits into 75% of the available memory!
-    if (nrow(.run.info) > .mf) .ch <- ceiling(nrow(.run.info) / .mf)
-    else .ch <- NULL
-  } else {
-    if (!is.null(filename)) warning('the package mraster is not installed (use installAll() to get it installed); this package helps when the output object size is big!')
-    .ch <- NULL
-  }
+  # if (.require("mraster")) {
+  #   .memo <- eval(expression({memory(session=TRUE,echo=FALSE)}))
+  #   if (is.numeric(.memo)) {
+  #     .wf <- eval(parse(text = "mraster:::.change_unit(utils::object.size(woL$data@features)*150,'B','M')[[1]]")) # guessing the size of modelObj
+  #     .mf <- floor(0.75 * ( .memo[2] /  .wf) )[[1]] # how many modelObj fits into 75% of the available memory!
+  #     if (nrow(.run.info) > .mf) .ch <- ceiling(nrow(.run.info) / .mf)
+  #     else .ch <- NULL
+  #   } else .ch <- NULL 
+  #   
+  # } else {
+  #   if (!is.null(filename)) warning('the package mraster is not installed (use installAll() to get it installed); this package helps when the output object size is big!')
+  #   .ch <- NULL
+  # }
+  .ch <- NULL # temporary:=> until the mraster package is fixed and the above lines are modified based on!
   
   if (is.null(filename) && !is.null(.ch)) {
     #if (nrow(.run.info) > floor(.memo[1] / .wf)[[1]])
@@ -1863,7 +1762,7 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
   }
   #----------
   cl <- NULL
-  w$tasks <- .tasks
+  woL$tasks <- .tasks
   
   if (nc > 1) {
     if (.fork) {
@@ -1884,11 +1783,11 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
         }
       } else cl <- makePSOCKcluster(nc) # I should work more on providing the hostnames (on windows the connection needs to be throuy plink or PUTTY...)
       #--------
-      clusterExport(cl,c('w','.Lapply','.fun','.tasks','.fitLapply','.fitSimpleLapply','.fitlapply'))
+      clusterExport(cl,c('woL','.Lapply','.fun','.tasks','.fitLapply','.fitSimpleLapply','.fitlapply'),envir = environment())
       .w <- try(clusterEvalQ(cl,{
         library(sdm)
         sdm:::.addMethods()
-        sdm:::.pkgLoad(w$setting@methods)
+        sdm:::.pkgLoad(woL$setting@methods)
       }),silent = TRUE)
       
       if (inherits(.w,'try-error')) {
@@ -1918,13 +1817,13 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
   
   if (is.null(.ch)) {
     if (.tasks.type %in% c('species','species.noRun')) {
-      .mo <- .lapply(species, function(x,...) .fitlapply(x,...),.Fun=.fun,w=w,cl=cl)
+      .mo <- .lapply(species, function(x,...) .fitlapply(x,...),.Fun=.fun,w=woL,cl=cl)
     } else if (.tasks.type == 'runs') {
-      .mo <- lapply(species, function(x,...) .fitLapply(x,...),.Fun=.fun,.l1=lapply,.l2=.lapply,w=w,cl=cl)
+      .mo <- lapply(species, function(x,...) .fitLapply(x,...),.Fun=.fun,.l1=lapply,.l2=.lapply,w=woL,cl=cl)
     } else if (.tasks.type %in% c('methods','methods.noRun')) {
-      .mo <- lapply(species, function(x,...) .fitLapply(x,...),.Fun=.fun,.l1=.lapply,.l2=lapply,w=w,cl=cl)
+      .mo <- lapply(species, function(x,...) .fitLapply(x,...),.Fun=.fun,.l1=.lapply,.l2=lapply,w=woL,cl=cl)
     } else if (.tasks.type %in% c('simple','simple.noRun')) {
-      .w <- .lapply(.tasks$modelID, function(id, ...) .fitSimpleLapply(id,...), .Fun=.fun,w=w, cl=cl)
+      .w <- .lapply(.tasks$modelID, function(id, ...) .fitSimpleLapply(id,...), .Fun=.fun,w=woL, cl=cl)
       .mo <- vector('list',length=length(species))
       names(.mo) <- species
       .ww <- vector('list',length=length(models))
@@ -1975,7 +1874,7 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
     .idList[[i]] <- .tasks$modelID[((i-1)*.w + 1):nrow(.run.info)]
     
     for (i in 1:length(.idList)) {
-      .w <- .lapply(.idList[[i]], function(id, ...) .fitSimpleLapply(id,...), .Fun=.fun,w=w, cl=cl)
+      .w <- .lapply(.idList[[i]], function(id, ...) .fitSimpleLapply(id,...), .Fun=.fun,w=woL, cl=cl)
       for (j in seq_along(.idList[[i]])) {
         .wid <-  which(.tasks$modelID == .idList[[i]][j])
         sp <- .tasks$species[.wid]

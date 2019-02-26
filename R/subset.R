@@ -1,7 +1,7 @@
 # Author: Babak Naimi, naimi.b@gmail.com
 # Date :  Feb. 2015
-# Last update: JuLY 2017
-# Version 1.2
+# Last update: Nov. 2018
+# Version 1.4
 # Licence GPL v3
 
 .deleteRecords <- function(x,id) {
@@ -188,9 +188,9 @@
   f <- NULL
   if (length(id) > 0) {
     f <- .getSdmDataFrame(x,ind = id)
-    if (!is.null(x@info@coords)) f <- cbind(f,data.frame(x@info@coords[x@info@coords[,1] %in% id,2:3]))
-    if (!is.null(x@info@time)) f <- cbind(f,x@info@time[x@info@time[,1] %in% id,2:ncol(x@info@time)])
-    if (!is.null(x@info@info)) f <- cbind(f,x@info@info[x@info@info[,1] %in% id,2:ncol(x@info@info)])
+    if (!is.null(x@info) && !is.null(x@info@coords)) f <- cbind(f,data.frame(x@info@coords[match(id,x@info@coords[,1]),2:3]))
+    if (!is.null(x@info) && !is.null(x@info@time)) f <- cbind(f,x@info@time[match(id,x@info@time[,1]),2:ncol(x@info@time)])
+    if (!is.null(x@info) && !is.null(x@info@info)) f <- cbind(f,x@info@info[match(id,x@info@info[,1]),2:ncol(x@info@info)])
   }
   f
 }
@@ -205,36 +205,36 @@ setMethod("[", c("sdmdata"),
           }
 )
 #--------
-
 setMethod("[[", c("sdmModels"),
           function(x,i,...,drop=TRUE) {
             if ( missing(i)) { stop('you must provide an index') }
-            mi <- .getModel.info(x,w=i)
+            mi <- getModelInfo(x,w=i)
             if (nrow(mi) == 0) stop('the specified index in i are not within the range of model IDs')
             
             mi$newRID <- mi$replicationID
             if (drop) mi$newID <- 1:nrow(mi)
             
-            
             sp <- as.character(unique(mi[,2]))
             smo <- new('sdmModels',setting=x@setting,data=x@data)
-            
-            
             
             for (s in sp) {
               mj <- mi[which(mi[,2] == s),]
               m <- as.character(unique(mj[,3]))
               r <- unique(mj[,5])
-              for (ri in seq_along(r)) mi[mi[,2] == s & mi[,5] == r[ri],10] <- ri
-              smo@replicates[[s]] <- x@replicates[[s]][r]
+              if (!is.na(r)) {
+                for (ri in seq_along(r)) mi[mi[,2] == s & mi[,5] == r[ri],10] <- ri
+                smo@replicates[[s]] <- x@replicates[[s]][r]
+              }
+              
               smo@models[[s]] <- list()
               
               for (mo in m) {
                 smo@models[[s]][[mo]] <- list()
                 mk <- mj[which(mj[,3]  == mo),]
                 if (drop) {
-                  for (id in mk[,11]) {
-                    smo@models[[s]][[mo]][[as.character(id)]] <- x@models[[s]][[mo]][[as.character(id)]]
+                  for (id in seq_along(mk[,11])) {
+                    smo@models[[s]][[mo]][[as.character(mk[id,11])]] <- x@models[[s]][[mo]][[as.character(mk[id,1])]]
+                    smo@models[[s]][[mo]][[as.character(mk[id,11])]]@mID <- mk[id,11]
                   }
                 } else {
                   for (id in mk[,1]) {
@@ -244,18 +244,13 @@ setMethod("[[", c("sdmModels"),
               }
             }
             
-            mi[,5] <- mi[,10]
-            if (drop) {
-              for (j in 1:nrow(mi)) {
-                x@models[[mi[j,2]]][[mi[j,3]]][[as.character(mi[j,1])]]@mID <- mi[j,11]
-              }
-              mi[,1] <- mi[,11]
-            }
+            if (!is.na(r)) mi[,5] <- mi[,10]
+            if (drop) mi[,1] <- mi[,11]
+            
             smo@run.info <- mi[,1:9]
             smo
           }
 )
-
 
 
 if (!isGeneric("subset")) {
