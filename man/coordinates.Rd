@@ -55,3 +55,4 @@ coordinates(d)
 }
 
 \keyword{spatial}
+\keyword{data}
