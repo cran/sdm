@@ -14,7 +14,7 @@ Get or set spatial coordiates of a \code{sdmdata} object.
 }
 
 \usage{
-\S4method{coordinates}{sdmdata}(obj)
+\S4method{coordinates}{sdmdata}(obj,...)
 
 \S4method{coordinates}{sdmdata}(object)<-value
 

@@ -570,6 +570,7 @@
     f <- .replicateMethods$getFunctions(s@replicate)
     for (sp in names(w$train)) {
       if (d@species[[sp]]@type %in% c('Presence-Absence','Presence-Background')) family <- 'binomial'
+      else if (d@species[[sp]]@type %in% c('Abundance')) family <- 'poisson'
       else family <- 'xxx'
       
       # sdmDataFrame! Leter should be checked for other types of data!

@@ -1,4 +1,4 @@
-f5d8e49b3efc24e6411c17d2d455f405 *DESCRIPTION
+c3f832c232f35aa10a6824a49047bee5 *DESCRIPTION
 87364260d39dce5bdd904793cb72b6ac *NAMESPACE
 9d3a4fabfca9b394c0a49077f30d8e43 *R/AAAClasses.R
 697b7599c20d4fbf5a84e801d078ec01 *R/arithm.R
@@ -24,7 +24,7 @@ aab00d1af81bb3310f346533c96c0f21 *R/predict.R
 c76096b5f79fedbfe9445b49953c72e4 *R/replicate.R
 d4d8a1b0581931129303305e82bf816a *R/responseCurve.R
 fcb2543eb10ce472345e8729ab264ce1 *R/roc.R
-661e9b53251f25fb0f3cb59c5f77e785 *R/sdm.R
+62dec390409a619dc2d1f6fb6cf9b47a *R/sdm.R
 e75296c243273dd388597508c47eda89 *R/sdmData.R
 6db3e2dae49cd255910000863aa0464d *R/sdmFormula.R
 f4f3d307c03976137fc6c03600454757 *R/sdmMethods.R
@@ -92,7 +92,7 @@ ac794d2a99d47cc6366def9907c08074 *man/arithm.Rd
 111f49b1447e61e6edc851e611146520 *man/as.data.frame.Rd
 ccad7c364a78d988c18d6c9c8c456da7 *man/boxplot.Rd
 4621ae1177db6246ab5289127c9f243f *man/calibration.Rd
-15f22a69ad582aace15f20abdd8fd536 *man/coordinates.Rd
+5a649456065d2df5593bd66ae2b7d562 *man/coordinates.Rd
 04ef7d8c286e38f5a902866352a9fd96 *man/density.Rd
 f36638ddb24d86761aab40f38a03e23d *man/ensemble.Rd
 75b92a5c440c9f404e9d35563153c5cf *man/evaluates.Rd
