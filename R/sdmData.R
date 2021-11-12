@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date of last update :  April 2020
-# Version 2.9
+# Date of last update :  Nov. 2021
+# Version 3.2
 # Licence GPL v3
 
 #------
@@ -177,69 +177,69 @@
   d
 }
 #-----
-.getFeature <- function(d,n,type='l',id,...) {
-  if (missing(id)) id <- .getIndex(d)
-  rid <- which(d@features$rID %in% id)
-  n <- n[1]
-  type <- tolower(type)
-  dot <- list(...)
-  if (!n %in% d@features.name) stop('the variable does not exist!')
-  if (type %in% c('l','linear')) {
-    d@features[rid,n]
-  } else if (type %in% c('q','quad','quadratic')) {
-    .getFeature.quad(d@features[rid,n])
-  } else if (type %in% c('c','cub','cubic')) {
-    .getFeature.cubic(d$features[rid,n])
-  } else if (type %in% c('poly')) {
-    if ('degree' %in% names(dot)) degree <- dot[['degree']]
-    else degree <- 3
-    if ('raw' %in% names(dot)) raw <- dot[['raw']]
-    else raw <- TRUE
-    o <- .getFeature.poly(d@features[rid,n],degree=degree,raw=raw)
-    colnames(o) <- paste(colnames(o),'.',n,sep='')
-    o
-  } else if (type %in% c('h','hing','hinge')) {
-    if ('th' %in% names(dot)) th <- dot[['th']]
-    else th <- NULL
-    if (is.null(th)) {
-      if ('species' %in% names(dot)) {
-        if (is.numeric(dot[['species']]) && dot[['species']] <= length(d@species.names)) s <- dot[['species']]
-        else if (is.character(dot[['species']]) && dot[['species']] %in% d@species.names) s <- which(d@species.names == dot[['species']])
-        else stop('species is not identified!')
-      } else {
-        if (length(d@species.names) > 1) {
-          s <- 1
-          warning('to detect the threshold for the hinge feature, the species name is needed; since it is not specified the first species is used')
-        } else s <- 1
-      }
-      s <- d@species.names[s]
-      hP <- .getHingeParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value) # should be updated!
-      .getFeature.hinge(d@features[rid,n],nknots=10) # should be updated!!
-    } else .getFeature.hinge(d@features[rid,n],nknots=10) # should be updated!
-    
-  } else if (type %in% c('th','threshold')) {
-    if ('th' %in% names(dot)) th <- dot[['th']]
-    else th <- NULL
-    if (is.null(th)) {
-      if ('species' %in% names(dot)) {
-        if (is.numeric(dot[['species']]) && dot[['species']] <= length(d@species.names)) s <- dot[['species']]
-        else if (is.character(dot[['species']]) && dot[['species']] %in% d@species.names) s <- which(d@species.names == dot[['species']])
-        else stop('species is not identified!')
-      } else {
-        if (length(d@species.names) > 1) {
-          s <- 1
-          warning('to detect the threshold for the threshold feature, the species name is needed; since it is not specified the first species is used')
-        } else s <- 1
-      }
-      s <- d@species.names[s]
-      thP <- .getThresholdParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value)
-      .getFeature.threshold(d@features[rid,n],th=thP$threshold,increasing=thP$increasing)
-    } else .getFeature.threshold(d@features[rid,n],th=th)
-    
-    
-    
-  }
-}
+# .getFeature <- function(d,n,type='l',id,...) {
+#   if (missing(id)) id <- .getIndex(d)
+#   rid <- which(d@features$rID %in% id)
+#   n <- n[1]
+#   type <- tolower(type)
+#   dot <- list(...)
+#   if (!n %in% d@features.name) stop('the variable does not exist!')
+#   if (type %in% c('l','linear')) {
+#     d@features[rid,n]
+#   } else if (type %in% c('q','quad','quadratic')) {
+#     .getFeature.quad(d@features[rid,n])
+#   } else if (type %in% c('c','cub','cubic')) {
+#     .getFeature.cubic(d$features[rid,n])
+#   } else if (type %in% c('poly')) {
+#     if ('degree' %in% names(dot)) degree <- dot[['degree']]
+#     else degree <- 3
+#     if ('raw' %in% names(dot)) raw <- dot[['raw']]
+#     else raw <- TRUE
+#     o <- .getFeature.poly(d@features[rid,n],degree=degree,raw=raw)
+#     colnames(o) <- paste(colnames(o),'.',n,sep='')
+#     o
+#   } else if (type %in% c('h','hing','hinge')) {
+#     if ('th' %in% names(dot)) th <- dot[['th']]
+#     else th <- NULL
+#     if (is.null(th)) {
+#       if ('species' %in% names(dot)) {
+#         if (is.numeric(dot[['species']]) && dot[['species']] <= length(d@species.names)) s <- dot[['species']]
+#         else if (is.character(dot[['species']]) && dot[['species']] %in% d@species.names) s <- which(d@species.names == dot[['species']])
+#         else stop('species is not identified!')
+#       } else {
+#         if (length(d@species.names) > 1) {
+#           s <- 1
+#           warning('to detect the threshold for the hinge feature, the species name is needed; since it is not specified the first species is used')
+#         } else s <- 1
+#       }
+#       s <- d@species.names[s]
+#       hP <- .getHingeParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value) # should be updated!
+#       .getFeature.hinge(d@features[rid,n],knots=10) # should be updated!!
+#     } else .getFeature.hinge(d@features[rid,n],knots=10) # should be updated!
+#     
+#   } else if (type %in% c('th','threshold')) {
+#     if ('th' %in% names(dot)) th <- dot[['th']]
+#     else th <- NULL
+#     if (is.null(th)) {
+#       if ('species' %in% names(dot)) {
+#         if (is.numeric(dot[['species']]) && dot[['species']] <= length(d@species.names)) s <- dot[['species']]
+#         else if (is.character(dot[['species']]) && dot[['species']] %in% d@species.names) s <- which(d@species.names == dot[['species']])
+#         else stop('species is not identified!')
+#       } else {
+#         if (length(d@species.names) > 1) {
+#           s <- 1
+#           warning('to detect the threshold for the threshold feature, the species name is needed; since it is not specified the first species is used')
+#         } else s <- 1
+#       }
+#       s <- d@species.names[s]
+#       #thP <- .getThresholdParams(d@features[rid,n],y=.getSpeciesDF(d,sp=s,id=id)[[1]]$value)
+#       #.getFeature.threshold(d@features[rid,n],th=thP$threshold,increasing=thP$increasing)
+#     } else .getFeature.threshold(d@features[rid,n])
+#     
+#     
+#     
+#   }
+# }
 #-----------
 
 if (!isGeneric('.addLog<-')) {
@@ -559,7 +559,7 @@ setReplaceMethod('.addLog','sdmdata',
   }
   
   exf <- .exFormula(formula,train)
-  nall <- c(exf@vars,exf@species)
+  nall <- c(exf@vars@names,exf@species)
   
   
   if (!.varExist(train,nall)) stop('one or more specified variables in the formula do not exist in the train data!')
@@ -651,7 +651,7 @@ setReplaceMethod('.addLog','sdmdata',
   #-------
   
   if (is.null(nf) & is.null(nFact)) {
-    nf <- exf@vars
+    nf <- exf@vars@names
     w <- .where(is.factor,train[,nf]) | .where(is.character,train[,nf])
     if (any(w)) nFact <- nf[w]
     
@@ -787,139 +787,6 @@ setReplaceMethod('.addLog','sdmdata',
   d
 }
 #-------
-# 
-# # create sdmdata object:
-# .createSdmdata_base <- function(train,test=NULL,nsp=NULL,nf=NULL,nFact=NULL,nxy=NULL,ng=NULL,nt=NULL,ni=NULL,crs=NULL,author=NULL,website=NULL,citation=NULL,help=NULL,description=NULL,date=NULL,license=NULL) {
-# #   nnFact <- nnf <- nnxy <- nnt <- NULL
-# #   if (!is.null(nFact)) nnFact <- paste(paste('f(',nFact,')',sep=''),collapse='+')
-# #   if (!is.null(nf)) nnf <- paste(nf,collapse='+')
-# #   if (!is.null(nxy)) nnxy <- paste(paste('coords(',paste(nxy,collapse='+'),')',sep=''),collapse='+')
-# #   if (!is.null(nt)) nnt <- paste(paste('time(',nt,')',sep=''),collapse='+')
-# #   formula <- as.formula(paste(paste(w$nsp,collapse="+"),'~',paste(c(nnf,nnFact,nnxy,nnt),collapse='+')),env = parent.frame())
-# #   
-#   #exf <- .exFormula(formula,train)
-#   #nall <- c(exf@vars,exf@species)
-#   nall <- c(nsp,nf,nFact,nxy,ng,ni,nt)
-#   if (!.varExist(train,nall)) stop('one or more specified variables in the formula does not exist in the train data!')
-#   
-#   d <- new('sdmdata')
-#   
-#   #d@sdmFormula <- exf
-#   
-#   #nsp <- exf@species
-#   
-#   w <- .dataClean(train,nsp)
-#   if (any(w[[2]] > 0)) {
-#     train <- w[[1]]
-#     ww <- c()
-#     if (w[[2]][1] > 0) .addLog(d) <- paste(w[[2]][1],'records with NA from the train data are removed')
-#     if (w[[2]][2] > 0) .addLog(d) <- paste(w[[2]][2],'duplicarted records from the train data are removed')
-#   }
-#   
-#   train$rID <- 1:nrow(train)
-#   
-#   train <- .int.to.numeric(train)
-#   
-#   if (!is.null(test)) {
-#     if (!.varExist(test,nall)) stop('one or more specified variables in the formula does not exist in the test data!')
-#     w <- .dataClean(test,nsp)
-#     if (any(w[[2]] > 0)) {
-#       test <- w[[1]]
-#       ww <- c()
-#       if (w[[2]][1] > 0) .addLog(d) <- paste(w[[2]][1],'records with NA from the test data are removed')
-#       if (w[[2]][2] > 0) .addLog(d) <- paste(w[[2]][2],'duplicarted records from the test data are removed')
-#     }
-#     
-#     test$rID <- (nrow(train)+1):(nrow(test)+nrow(train))
-#     d <- .newGroup(d,'training',index=list(train=train$rID,test=test$rID))
-#     test <- .int.to.numeric(test)
-#   } else {
-#     d <- .newGroup(d,'training',index=list(train=train$rID))
-#   }
-#   #-------
-#   
-#   w <- !colnames(train) %in% c(nall,'rID')
-#   if (any(w)) {
-#     if (is.null(nxy)) {
-#       nxy <- .which.is.coords(colnames(train)[w])
-#       if (!is.null(test) && !.varExist(test,nxy)) nxy <- NULL
-#     }
-#     
-#     ww <- unlist(lapply(which(w),function(x) class(train[,x]))) %in% c("POSIXct","POSIXt","Date","yearmon","yearqtr")
-#     if (any(ww)) {
-#       nt <- colnames(train)[w[which(ww)]]
-#     }
-#   }
-#   nf <- .excludeVector(nf,c(nt,nxy))
-#   nFact <- .excludeVector(nFact,c(nt,nxy))
-#   
-#   #-------
-#   nall <- c(nsp,nf,nFact,nxy,ng,ni,nt,'rID')
-#   if (!is.null(test)) {
-#     train <- rbind(train[,nall],test[,nall])
-#     rm(test)
-#     species <- .getSpecies(train,nsp,id.train = d@groups$training@indices$train,id.test = d@groups$training@indices$test)
-#   } else {
-#     train <- train[,nall]
-#     species <- .getSpecies(train,nsp)
-#   }
-#   #----
-#   
-#   if (!is.null(ng)) {
-#     for (n in ng) {
-#       ww <- as.character(train[,n])
-#       u <- unique(ww)
-#       if (length(u) == 1) warning(paste('the grouping variable',n,'is ignored; it is constant!'))
-#       else {
-#         w <- list()
-#         for (uu in u) {
-#           w[[uu]] <- train$rID[which(ww == uu)]
-#         }
-#         d <- .newGroup(d,n,index=w)
-#       }
-#     }
-#   }
-#   #------
-#   if (!is.null(c(nxy,ni,nt,website,help,description,date,license)) || !is.null(c(citation,author))) {
-#     d@info <- new('.info')
-#     if (!is.null(nxy)) {
-#       d@info@coords <- as.matrix(train[,c('rID',nxy)])
-#       if (!is.null(crs) && inherits(crs,'CRS')) d@info@crs <- crs
-#     }
-#     if (!is.null(ni)) d@info@info <- train[,c('rID',ni)]
-#     
-#     if (!is.null(nt)) {
-#       dt <- data.frame(rID=train$rID)
-#       for (n in nt) {
-#         if ((class(train[,n]) %in% c("POSIXct","POSIXt","Date","yearmon","yearqtr"))[1]) {
-#           dt <- cbind(dt,train[,n])
-#         } else {
-#           w <- .char2time(train[,n])
-#           if ((class(w) %in% c("POSIXct","POSIXt","Date","yearmon","yearqtr"))[1]) dt[,n] <- w
-#           else warning(paste('a time-based format is not detected for variable',n,", so it is IGNORED; it must have a detectable character format, or being one of time-based classes including: 'POSIXct', 'POSIXt', 'Date', 'yearmon','yearqtr'"))
-#         }
-#       }
-#       if (ncol(train) > 1) d@info@time <- dt
-#     }
-#     
-#     if (!is.null(c(website,help,description,date,license)) || !is.null(c(citation,author))) {
-#       d@info@metadata <- .newMetadata(authors=author,web=website,cit=citation,desc=description,date=date,license=license,help=help)
-#     }
-#   }
-#   #----------
-#   d@species <- species
-#   d@species.names <- names(species)
-#   
-#   if (!is.null(c(nf,nFact))) {
-#     d@features.name <- c(nf,nFact)
-#     if (!is.null(nFact)) d@factors <- nFact
-#     for (n in nFact) train[,n] <- factor(train[,n])
-#     d@features <- train[,c('rID',nf,nFact)]
-#   } 
-#   d
-# }
-
-#------
 
 .Extract <- function(x,cells,factors) {
   n <- names(x)

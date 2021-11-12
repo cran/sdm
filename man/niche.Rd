@@ -48,9 +48,9 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 \author{Babak Naimi \email{naimi.b@gmail.com}
 
-\url{http://r-gis.net}
+\url{https://www.r-gis.net/}
 
-\url{http://biogeoinformatics.org}
+\url{https://www.biogeoinformatics.org}
 }
 
 
@@ -92,7 +92,8 @@ niche(x=preds, h=p1, c('vegetation','temperature'))
 niche(x=preds, h=species, c('vegetation','temperature','Occurrence'))
 
 
-niche(x=preds, h=d, n=c('vegetation','temperature','Occurrence'))
+niche(x=preds, h=d, n=c('vegetation','temperature','Occurrence'), rnd=2) 
+# rnd is the argument specifies the decimal degrees to which the values on axis rounded.
 
 
 

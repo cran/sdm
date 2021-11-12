@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Februray 2020
-# Version 4.1
+# Date (last update):  Oct. 2021
+# Version 4.6
 # Licence GPL v3
 #--------
 
@@ -50,13 +50,33 @@
   as.formula(paste(n[1],'~',paste(n[-1],collapse='+'),sep=''),env = env)
 }
 
-.getFormula.gammgcv.rhs <- function(n,nFact=NULL,env=parent.frame()) {
-  if (!is.null(nFact)) as.formula(paste('~',paste(c(paste(paste('s(',n,sep=''),')',sep=''),nFact),collapse='+'),sep=''),env = env)
-  else as.formula(paste('~',paste(paste(paste('s(',n,sep=''),')',sep=''),collapse='+'),sep=''),env = env)
+.getFormula.glmPoly <- function(n,nFact=NULL,degree=3,env=parent.frame()) {
+  if (!is.null(nFact)) as.formula(paste(n[1],'~',paste(c(paste(paste0('poly(',n[-1],sep=''),', degree = ',degree,')',sep=''),nFact),collapse='+'),sep=''),env = env)
+  else as.formula(paste(n[1],'~',paste(paste(paste('poly(',n[-1],sep=''),', degree = ',degree,')',sep=''),collapse='+'),sep=''),env = env)
 }
-.getFormula.gammgcv <- function(n,nFact=NULL,env=parent.frame()) {
-  if (!is.null(nFact)) as.formula(paste(n[1],'~',paste(c(paste(paste('s(',n[-1],sep=''),')',sep=''),nFact),collapse='+'),sep=''),env = env)
-  else as.formula(paste(n[1],'~',paste(paste(paste('s(',n[-1],sep=''),')',sep=''),collapse='+'),sep=''),env = env)
+
+
+.getFormula.gammgcv.rhs <- function(n,nFact=NULL,k=-1,bs='tp',env=parent.frame()) {
+  # if (!is.null(nFact)) as.formula(paste('~',paste(c(paste(paste('s(',n,sep=''),')',sep=''),nFact),collapse='+'),sep=''),env = env)
+  # else as.formula(paste('~',paste(paste(paste('s(',n,sep=''),')',sep=''),collapse='+'),sep=''),env = env)
+  
+  if (length(k) > 1) {
+    if (length(k) != length(n)) stop('the number of items in k (smothing parameter for the GAM formula) should be either one or equal to the number of continuous variables!')
+  } 
+  
+  if (!is.null(nFact)) as.formula(paste('~',paste(c(paste(paste0('s(',n,sep=''),', k = ',k,', bs = "',bs,'")',sep=''),nFact),collapse='+'),sep=''),env = env)
+  else as.formula(paste('~',paste(paste(paste('s(',n,sep=''),', k = ',k,', bs = "',bs,'")',sep=''),collapse='+'),sep=''),env = env)
+  
+}
+
+.getFormula.gammgcv <- function(n,nFact=NULL,k=-1,bs='tp',env=parent.frame()) {
+  if (length(k) > 1) {
+    if (length(k) != length(n[-1])) stop('the number of items in k (smothing parameter for the GAM formula) should be either one or equal to the number of continuous variables!')
+  } 
+  
+  if (!is.null(nFact)) as.formula(paste(n[1],'~',paste(c(paste(paste0('s(',n[-1],sep=''),', k = ',k,', bs = "',bs,'")',sep=''),nFact),collapse='+'),sep=''),env = env)
+  else as.formula(paste(n[1],'~',paste(paste(paste('s(',n[-1],sep=''),', k = ',k,', bs = "',bs,'")',sep=''),collapse='+'),sep=''),env = env)
+  
 }
 #----------
 
@@ -392,15 +412,15 @@
   #------------
   if (!is.null(s@seed)) set.seed(s@seed)
   #-----------
-  #fr <- .getFeaturetype(d,s@sdmFormula)
+  
   w <- new('.workload',ncore=s@parallelSettings@ncore,data=d,setting=s,frame=s@featuresFrame,filename=filename)
   #-----
   hasTest <- 'test' %in% d@groups$training@values[,2]
   nFact <- NULL
-  if (!is.null(d@factors) > 0 && any(d@factors %in% s@sdmFormula@vars)) nFact <- d@factors[d@factors %in% s@sdmFormula@vars]
+  if (!is.null(d@factors) > 0 && any(d@factors %in% s@sdmFormula@vars@names)) nFact <- d@factors[d@factors %in% s@sdmFormula@vars@names]
   nf <- .excludeVector(d@features.name,nFact)
-  nf <- nf[nf %in% s@sdmFormula@vars]
-  nFact <- nFact[nFact %in% s@sdmFormula@vars]
+  nf <- nf[nf %in% s@sdmFormula@vars@names]
+  nFact <- nFact[nFact %in% s@sdmFormula@vars@names]
   #---------
   for (sp in s@sdmFormula@species) {
     dt <- as.data.frame(d,sp=sp,grp='train')
@@ -435,14 +455,10 @@
             }
           }
         }
-        
-        #f <- .factorFix.bm(w$train[[sp]]$sdmDataFrame,w$test[[sp]]$sdmDataFrame,nFact)
-        #if (!is.null(f)) {
-        #  w$train[[sp]]$sdmDataFrame <- f$train
-        #  w$test[[sp]]$sdmDataFrame <- f$test
-        #}
       }
     }
+    #--------
+    w$getSdmVariables(sp=sp,nf=nf,nFact = nFact)
   }
   #------------
   w$funs[['fit']] <- .sdmMethods$getFitFunctions(s@methods)
@@ -606,188 +622,7 @@
 }
 
 #----------------------------------------
-# if (!isGeneric("sdmSetting")) {
-#   setGeneric("sdmSetting", function(formula,data,methods,interaction.depth=1,n=1,replication=NULL,
-#                                     cv.folds=NULL,test.percent=NULL,bg=NULL,bg.n=NULL,var.importance=NULL,response.curve=TRUE,
-#                                     var.selection=FALSE,ncore=1L,...)
-#     standardGeneric("sdmSetting"))
-# }
-# 
-# setMethod('sdmSetting', signature(formula='ANY','sdmdata','character'), 
-#           function(formula,data,methods,interaction.depth=1,n=1,replication=NULL,
-#                    cv.folds=NULL,test.percent=NULL,bg=NULL,bg.n=NULL,var.importance=NULL,response.curve=TRUE,
-#                    var.selection=FALSE,ncore=1L,...) {
-#             
-#             if (!.sdmOptions$getOption('sdmLoaded')) .addMethods()
-#             
-#             dot <- list(...)
-#             sobj <- NULL
-#             if (length(dot) > 0) {
-#               ndot <- names(dot)
-#               if ('' %in% ndot) {
-#                 for (i in seq_along(which(ndot == ''))) {
-#                   if (inherits(dot[[i]],'.sdmCorSetting')) {
-#                     sobj <- dot[[i]]
-#                     break
-#                   }
-#                 }
-#                 dot <- dot[-which(ndot == '')]
-#                 ndot <- names(dot)
-#               }
-#               
-#               a <- c('interaction.depth','replication','cv.folds','test.percent','bg','bg.n','var.importance','response.curve','var.selection','ncore')
-#               ndot <- .pmatch(ndot,a)
-#               w <- !is.na(ndot)
-#               if (length(w) > 0) {
-#                 dot <- dot[w]
-#                 ndot <- ndot[w]
-#                 names(dot) <- ndot
-#               }
-#               
-#               
-#               if ('setting' %in% names(dot) && inherits(dot[['setting']],'.sdmCorSetting')) {
-#                 sobj <- dot[['setting']]
-#                 dot <- dot[-which(ndot == 'setting')]
-#                 ndot <- names(dot)
-#               }
-#               
-#               if (length(dot) > 0) {
-#                 if (length(ndot) > 0) {
-#                   for (nd in ndot) {
-#                     if (nd == 'interaction.depth' && interaction.depth == 1) interaction.depth <- dot[[nd]]
-#                     else if (nd == 'ncore' && ncore == 1L) ncore <- dot[[nd]]
-#                     else if (nd == 'replication' && is.null(replication)) replication <- dot[[nd]]
-#                     else if (nd == 'cv.folds' && is.null(cv.folds)) cv.folds <- dot[[nd]]
-#                     else if (nd == 'test.percent' && is.null(test.percent)) test.percent <- dot[[nd]]
-#                     else if (nd == 'bg' && is.null(bg)) bg <- dot[[nd]]
-#                     else if (nd == 'bg.n' && is.null(bg.n)) bg.n <- dot[[nd]]
-#                     else if (nd == 'var.importance' && is.null(var.importance)) var.importance <- dot[[nd]]
-#                     else if (nd == 'response.curve' && response.curve && is.logical(dot[[nd]])) response.curve <- dot[[nd]]
-#                     else if (nd == 'var.selection' && !var.selection && is.logical(dot[[nd]])) var.selection <- dot[[nd]]
-#                   }
-#                 }
-#               }
-#             }
-#             #--------
-#             
-#             m <- .methodFix(methods)
-#             if (any(is.na(m))) stop(paste('methods',paste(methods[is.na(m)],collapse=', '),'do not exist!'))
-#             m <- unique(m)
-#             
-#             s <- new('.sdmCorSetting',methods=m)
-#             s@distribution <- .getSpeciesDistribution(data)
-#             
-#             if (missing(formula)) {
-#               if (!is.null(sobj)) {
-#                 if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
-#                 else s@sdmFormula <- data@sdmFormula
-#               } else s@sdmFormula <- data@sdmFormula
-#               
-#             } else if (inherits(formula,'sdmFormula')) s@sdmFormula <- formula
-#             else if (inherits(formula,'formula')) {  
-#               s@sdmFormula <- .exFormula(formula,as.data.frame(data)[,-1])
-#             } else if (inherits(formula,'.sdmCorSetting')) {
-#               sobj <- formula
-#               if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
-#               else s@sdmFormula <- data@sdmFormula
-#             } else {
-#               if (!is.null(sobj)) {
-#                 if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
-#                 else s@sdmFormula <- data@sdmFormula
-#               } else s@sdmFormula <- data@sdmFormula
-#             }
-#             
-#             s@featuresFrame <- .getFeaturetype(data,s@sdmFormula)  
-#               
-#             if (!is.null(test.percent)) s@test.percentage <- test.percent
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@test.percent)) s@test.percentage <- sobj@test.percent
-#               }
-#             }
-#             
-#             s@interaction.depth <- interaction.depth
-#             if (interaction.depth ==1 && !is.null(sobj) && !is.null(sobj@interaction.depth)) s@interaction.depth <- sobj@interaction.depth
-#             
-#             s@ncore <- ncore
-#             if (ncore == 1L && !is.null(sobj) && length(sobj@ncore) == 1) s@ncore <- sobj@ncore
-#             
-#             if (!is.null(replication)) {
-#               nx <- .replicate.methodFix(replication)
-#               if (any(is.na(nx))) warning(paste(paste(replication[is.na(nx)],collapse=', '),'methods in replication are not found [They are ignored!]'))
-#               replication <- nx[!is.na(nx)]
-#               s@replicate <- replication
-#             } else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@replicate)) s@replicate <- sobj@replicate
-#               }
-#               if (is.null(s@replicate) && !is.null(s@test.percentage)) {
-#                 s@replicate <- "subsampling"
-#               }
-#             }
-#             
-#             s@n.replicates <- n
-#             if (!is.null(sobj) && !is.null(sobj@n.replicates)) s@n.replicates <- sobj@n.replicates
-#             
-#             if ("subsampling" %in% s@replicate) {
-#               if (is.null(s@test.percentage)) s@test.percentage <- 30
-#             }
-#             
-#             if (!is.null(cv.folds)) s@cv.folds <- cv.folds
-#             else {
-#               if (!is.null(sobj) && !is.null(sobj@cv.folds)) s@cv.folds <- sobj@cv.folds
-#               if (is.null(s@cv.folds) && "cross_validation" %in% s@replicate) s@cv.folds <- 5
-#             }
-#             
-#             if (!is.null(s@cv.folds) && !"cross_validation" %in% s@replicate) {
-#               s@replicate <- c("cross_validation",s@replicate)
-#             }
-#             
-#             if (!is.null(bg)) s@pseudo.absence.methods <- bg
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@pseudo.absence.methods)) s@pseudo.absence.methods <- sobj@pseudo.absence.methods
-#               }
-#             }
-#             if (!is.null(bg.n)) s@n.pseudo.absence <- bg.n
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@n.pseudo.absence)) s@n.pseudo.absence <- sobj@n.pseudo.absence
-#               }
-#               if (is.null(s@n.pseudo.absence) && !is.null(s@pseudo.absence.methods)) {
-#                 s@n.pseudo.absence <- 1000
-#               }
-#             }
-#             if (!is.null(var.importance)) s@varImportance.methods <- var.importance
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@varImportance.methods)) s@varImportance.methods <- sobj@varImportance.methods
-#               }
-#             }
-#             if (response.curve) s@response.curve <- TRUE
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@response.curve) && sobj@response.curve) s@response.curve <- sobj@response.curve
-#               } else s@response.curve <- FALSE
-#             }
-#             
-#             if (var.selection) s@var.selection <- TRUE
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@var.selection) && sobj@var.selection) s@var.selection <- sobj@var.selection
-#               } else s@var.selection <- FALSE
-#             }
-#             
-#             if (!is.null(interaction.depth)) s@interaction.depth <- interaction.depth
-#             else {
-#               if (!is.null(sobj)) {
-#                 if (!is.null(sobj@interaction.depth)) s@interaction.depth <- sobj@interaction.depth
-#               }
-#             }
-#             s
-#           }
-# )
-# #----------------
+
 if (!isGeneric("sdmSetting")) {
   setGeneric("sdmSetting", function(formula,data,methods,interaction.depth=1,n=1,replication=NULL,
                                     cv.folds=NULL,test.percent=NULL,bg=NULL,bg.n=NULL,var.importance=NULL,response.curve=TRUE,
@@ -862,7 +697,7 @@ setMethod('sdmSetting', signature(formula='ANY','sdmdata','character'),
             #---------
             if (missing(formula)) {
               if (!is.null(sobj)) {
-                if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
+                if (all(sobj@sdmFormula@vars@names %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
                 else s@sdmFormula <- data@sdmFormula
               } else s@sdmFormula <- data@sdmFormula
               
@@ -871,11 +706,11 @@ setMethod('sdmSetting', signature(formula='ANY','sdmdata','character'),
               s@sdmFormula <- .exFormula(formula,as.data.frame(data)[,-1])
             } else if (inherits(formula,'.sdmCorSetting')) {
               sobj <- formula
-              if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
+              if (all(sobj@sdmFormula@vars@names %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
               else s@sdmFormula <- data@sdmFormula
             } else {
               if (!is.null(sobj)) {
-                if (all(sobj@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
+                if (all(sobj@sdmFormula@vars@names %in% data@features.name)) s@sdmFormula <- sobj@sdmFormula
                 else s@sdmFormula <- data@sdmFormula
               } else s@sdmFormula <- data@sdmFormula
             }
@@ -1145,7 +980,7 @@ setMethod('sdm', signature(formula='ANY',data='sdmdata',methods='.sdmCorSetting'
             
             s <- methods
             
-            if (missing(formula) && !all(s@sdmFormula@vars %in% data@features.name)) s@sdmFormula <- data@sdmFormula
+            if (missing(formula) && !all(s@sdmFormula@vars@names %in% data@features.name)) s@sdmFormula <- data@sdmFormula
             else if (inherits(formula,'sdmFormula')) s@sdmFormula <- formula
             else if (inherits(formula,'formula')) {  
               s@sdmFormula <- .exFormula(formula,as.data.frame(data)[,-1])
@@ -1337,53 +1172,6 @@ setMethod('sdm', signature(formula='sdmdata',data='.sdmCorSetting',methods='ANY'
 )
 
 #-------------
-# .getModel.info <- function(x,w,...) {
-#   if (missing(w) || is.null(w)) {
-#     a <- c('species','method','replication','run')
-#     w1 <- w2 <- w3 <- w4 <- TRUE
-#     dot <- list(...)
-#     if (length(dot) > 0) {
-#       ndot <- names(dot)
-#       ndot <- .pmatch(ndot,a)
-#       w <- !is.na(ndot)
-#       ndot <- ndot[w]
-#       dot <- dot[w]
-#       names(dot) <- ndot
-#       for (nd in ndot) {
-#         if (nd == 'species' && !is.null(dot[[nd]])) {
-#           dot[[nd]] <- .pmatch(dot[[nd]],unique(as.character(x@run.info[,2])))
-#           w1 <- x@run.info[,2] %in% dot[[nd]]
-#         } else if (nd == 'method' && !is.null(dot[[nd]])) {
-#           dot[[nd]] <- .methodFix(dot[[nd]])
-#           w2 <- x@run.info[,3] %in% dot[[nd]]
-#         }
-#         else if (nd == 'replication' && !is.null(dot[[nd]])) {
-#           if (length(x@replicates) != 0) {
-#             dot[[nd]] <- .replicate.methodFix(dot[[nd]])
-#             w3 <- x@run.info[,4] %in% dot[[nd]]
-#           }
-#         } else if (nd == 'run' && !is.null(dot[[nd]])) {
-#           if (!is.null(dot[[nd]])) {
-#             if (length(x@replicates) != 0) {
-#               r <- unlist(lapply(x@replicates[[1]],function(x) x$method))
-#               ru <- unique(r)
-#               names(ru) <- ru
-#               rID <- lapply(ru,function(x) which(r == x))
-#               w4 <- c()
-#               for (i in 1:length(rID)) {
-#                 w4 <- c(w4,rID[[i]][c(1:length(rID[[i]])) %in% dot[[nd]]])
-#               }
-#               w4 <- x@run.info[,5] %in% w4
-#             }
-#           }
-#         }
-#       }
-#       x@run.info[w1 & w2 & w3 & w4,]
-#     } else x@run.info
-#   } else x@run.info[x@run.info[,1] %in% w,]
-# }
-#--------
-
 ###########################
 #####################################################################
 

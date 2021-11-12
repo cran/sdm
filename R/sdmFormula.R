@@ -1,10 +1,10 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Feb. 2020
-# Version 1.4
+# Date (last update):  Nov. 2021
+# Version 1.9
 # Licence GPL v3
 
-.newFormulaFunction <- function(cls,name,args,getFeature) {
-  new('.formulaFunction',cls=cls,name=name,args=args)
+.newFormulaFunction <- function(cls,name,args,setFrame=NULL,getFeature=NULL) {
+  new('.formulaFunction',cls=cls,name=name,args=args,setFrame=setFrame,getFeature=getFeature)
 }
 
 # adding the classes of formula functions into the corresponding container:
@@ -19,47 +19,83 @@
                                                                            stat='characterORnull',
                                                                            term='call'
                                                             ))),
-                                         name=c('auto','a','Auto'),args=c('x','features','stat')))
+                                         name=c('auto','Auto'),args=c('x','features','stat')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.hinge',
                                                             representation(x='character',
-                                                                           thresholds='numeric',
-                                                                           nknots='numeric',
+                                                                           k='numericORnull',
+                                                                           thresholds='numericORnull',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
+                                                            ),
+                                                            prototype(
+                                                              k=20
                                                             ))),
-                                         name=c('hinge','h','H','Hinge','hing','Hing'),args=c('x','knots')))
+                                         name=c('hinge','h','H','Hinge','hing','Hing'),
+                                         args=c('x','k'),
+                                         setFrame = function(x,param) {
+                                           x@thresholds <- seq(param$min,param$max,length=x@k)
+                                           x@feature.name <- c(paste0(x@x,'_hi_',x@thresholds[-length(x@thresholds)]),paste0(x@x,'_hd_',x@thresholds[-1]))
+                                           x
+                                         },
+                                         getFeature = function(x,.var) {
+                                           k <- x@thresholds
+                                           h1 <- as.data.frame(lapply(k[-length(k)],function(th,x,...) {
+                                             .hinge(.var,th)
+                                           },x=.var))
+                                           #----
+                                           h2 <- as.data.frame(lapply(k[-1],function(th,x,...) {
+                                             .invhinge(x,th)
+                                           },x=.var))
+                                           
+                                           d <- cbind(h1,h2)
+                                           colnames(d) <- x@feature.name
+                                           d
+                                         }))
 
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.quad',
                                                             representation(x='character',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
-                                         name=c('quad','q','Q','Quad','quadratic','Quadratic'),args=c('x')))
+                                         name=c('quad','q','Q','Quad','quadratic','Quadratic'),args=c('x'),
+                                         getFeature = function(x) {
+                                           x * x
+                                         }))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.cubic',
                                                             representation(x='character',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
                                          name=c('cubic','c','C','Cubic'),args=c('x')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.factor',
                                                             representation(x='character',
+                                                                           levels='character',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
                                          name=c('factor','f','F','Factor','fact','Fact'),args=c('x')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.threshold',
                                                             representation(x='character',
-                                                                           threshold='numeric',
-                                                                           nknots='numeric',
+                                                                           k='numeric',
+                                                                           thresholds='numericORnull',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
+                                                            ),
+                                                            prototype(
+                                                              k=20
                                                             ))),
-                                         name=c('threshold','th','Th','thereshold','thresh','Thresh'),args=c('x','threshold','increasing')))
+                                         name=c('threshold','th','Th','thereshold','thresh','Thresh'),args=c('x','k')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.poly',
                                                             representation(x='character',
                                                                            degree='numeric',
                                                                            raw='logical',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ),
                                                             prototype(
@@ -70,32 +106,53 @@
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.product',
                                                             representation(x='character',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
                                          name=c('product','p','P','Product','prod','Prod'),args=c('x')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.func',
                                                             representation(x='call',
+                                                                           varName='characterORnull',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
-                                         name=c('I','i'),args=c('x')))
+                                         name=c('I'),args=c('x')))
 
 
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.simple.func',
-                                                            representation(term='call'
+                                                            representation(x='call',
+                                                                           varName='characterORnull',
+                                                                           feature.name='characterORnull',
+                                                                           term='call'
                                                             ))),
-                                         name=c('xxxxxxxx'),args=c('x')))
+                                         name=c('xxx'),args=c('x')))
 
 .sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.log',
                                                             representation(x='character',
+                                                                           feature.name='characterORnull',
                                                                            term='call'
                                                             ))),
-                                         name=c('log','log10','exp'),args=c('x')))
+                                         name=c('log'),args=c('x')))
+
+.sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.log10',
+                                                            representation(x='character',
+                                                                           feature.name='characterORnull',
+                                                                           term='call'
+                                                            ))),
+                                         name=c('log10'),args=c('x')))
+
+.sdmFormulaFuncs$add(.newFormulaFunction(cls=quote(setClass('.exp',
+                                                            representation(x='character',
+                                                                           feature.name='characterORnull',
+                                                                           term='call'
+                                                            ))),
+                                         name=c('exp'),args=c('x')))
+
 
 
 .sdmFormulaFuncs$setClasses() # set the classes
-# 
 # 
 
 ########################################################
@@ -287,6 +344,16 @@
   #if (length(unique(n)) < length(n)) stop('repeated arguments!')
   n
 }
+#-----------
+.getDataParams <- function(data,n,id=NULL) {
+  if (!is.null(id)) data <- data[id,,drop=FALSE]
+  data<- data[,n,drop=FALSE]
+  data.frame(names=n,min=apply(data,2,min,na.rm=TRUE),
+             max=apply(data,2,max,na.rm=TRUE),
+             mean=apply(data,2,mean,na.rm=TRUE),
+             sd=apply(data,2,sd,na.rm=TRUE))
+}
+
 
 #################---- detect the terms in the nested formula (model) inside the main formula:
 .nested_terms <- function(x,r='.parent',output='.prediction',setting=NULL,method='glm') {
@@ -382,16 +449,16 @@
     n <- n[2:length(n)]
     
     if (!is.null(n)) {
-      n <- .pmatch(n,a)
       if (length(n[n != ''] > 0) && !all(n[n != ''] %in% a)) stop(paste0('some arguments in function ',xx, ' is unknown!'))
       for (i in 1:length(n)) {
         if (n[i] != '') {
-          if (class(x[[i+1]]) == 'name') slot(cls,n[i]) <- as.character(x[[i+1]])
-          else slot(cls,n[i]) <- x[[i+1]]
+          if (class(x[[i+1]]) == 'name') {
+            slot(cls,n[i]) <- as.character(x[[i+1]])
+          } else slot(cls,n[i]) <- x[[i+1]]
         } else {
           if (class(x[[i+1]]) == 'name') slot(cls,a[i]) <- as.character(x[[i+1]])
           else slot(cls,a[i]) <- x[[i+1]]
-        } 
+        }
       }
     } else {
       for (i in 2:length(x)) {
@@ -440,7 +507,7 @@
 
 #-------------
 .select.terms <- function(x) {
-  a <- c('formula','n','stat','th','keep')
+  a <- c('formula','stat','n')
   s <- list()
   n <- names(x)
   if (length(n) > 0) {
@@ -448,14 +515,12 @@
       if (n[i] != '') {
         if (any(!is.na(pmatch(c("n"),tolower(n[i]))))) n[i] <- 'n'
         else if (any(!is.na(pmatch(c("st"),tolower(n[i]))))) n[i] <- 'stat'
-        else if (any(!is.na(pmatch(c("th"),tolower(n[i]))))) n[i] <- 'th'
-        else if (any(!is.na(pmatch(c("k"),tolower(n[i]))))) n[i] <- 'keep'
       }
     }
   } else n <- rep('',length(x))
   
   if (length(n[n != ''] > 0) && !all(n[n != ''] %in% a)) stop('some arguments in select function is unknown!')
-  if (length(x) > 5) stop('the arguments in select function are not match!')
+  if (length(x) > 4) stop('the arguments in select function are not match!')
   for (i in 2:length(n)) {
     if (n[i] != '') s[[n[i]]] <- x[[i]]
     else s[[a[i-1]]] <- x[[i]]
@@ -464,8 +529,8 @@
   if (length(s[['formula']]) > 1) {
     if (s[['formula']][[1]] != '|' && s[['formula']][[1]] != 'select') stop('something in `select` is wrong, check the help to see how the select function in formula should be used...')
     else {
-      l <- .split.formula(s[['formula']],'|')
-      if (any(unlist(lapply(l,function(x) {length(x) > 1 && x[[1]] == '+'})))) stop('something wrong with select; example: select(var1|var2|m(var1+var2),n=2,stat="auc"')
+      l <- .split.formula(s[['formula']],'+')
+      if (any(unlist(lapply(l,function(x) {length(x) > 1})))) stop('something wrong with select; example: select(var1+var2+var3,stat="vifstep",n="auto"')
     }
   } else l <- list(s[['formula']])
   
@@ -473,17 +538,8 @@
   
   if (!is.null(s[['n']])) n@n <- s[['n']]
   if (!is.null(s[['stat']])) n@stat <- s[['stat']]
-  if (!is.null(s[['keep']])) {
-    k <- as.character(s[['keep']])
-    if (k[1] == '~') {
-      k <- strsplit(k[2],'\\+')[[1]]
-      for (i in seq_along(k)) k[i] <- .trim(k[i])
-    } else if (k[1] == '+') {
-      k <- .split.formula(s[['keep']],'+')
-    } else if (k[1] == 'c') k <- k[2:length(k)]
-    n@keep <- k
-  }
-  n@sets <- lapply(l,.term)
+  
+  n@vars <- lapply(l,.term)
   n
 }
 #--------
@@ -498,6 +554,7 @@
 # .exFormula extract terms in formula and detect what each term is. it may be a model.term (including a
 # variable, a function, a nested model, etc.) or a data.term (including coordinates, select function, group, etc.)
 .exFormula <- function(f,data,detect=TRUE) {
+  nf <- nt <- ng <- nFact <- nsp <- ni <- NULL
   f <- .fixFormula(f)
   v <- colnames(data)
   
@@ -509,6 +566,8 @@
   }
   
   nFact <- v[.where(is.factor,data)]
+  nFact <- c(nFact,v[.where(is.character,data)])
+  
   if (length(nFact) == 0) nFact <- NULL
   else {
     if (any(nFact %in% nall)) nFact <- nFact[nFact %in% nall]
@@ -544,7 +603,9 @@
     } else nsp <- NULL
     
   }
-  f@vars <- nall
+  #f@vars <- nall
+  
+  
   f@species <- as.character(lhs)
   
   if (length(rhs) == 2) rhsi <- list(rhs)
@@ -554,7 +615,7 @@
   temp <- unlist(lapply(rhsi,function(x) as.character(x)[[1]] == 'coords'))
   if (any(temp)) nxy <- as.character(.split.formula(rhsi[[which(temp)]][[2]],'+'))
   
-  vars <- .excludeVector(nall,c(n,nxy))
+  vars <- .excludeVector(nall,c(n,nxy,nFact))
   
   w <- unlist(lapply(rhsi,function(x) x == '.'))
   if (any(w)) {
@@ -572,6 +633,7 @@
     }
   }
   
+  nf <- .excludeVector(nall,c(nxy,nFact))
   
   func.cls <- unlist(lapply(.sdmFormulaFuncs$funcNames,function(x) .sdmFormulaFuncs$funcs[[x]]@cls[[2]]))
   temp <- lapply(rhsi,.term)
@@ -579,7 +641,48 @@
   wt <- which(w %in% c('.var','.nestedModel',func.cls))
   if (length(wt) > 0) f@model.terms <- temp[wt]
   wt <- which(w %in% c('.coord.vars','.grouping','.Info','.time'))
-  if (length(wt) > 0) f@data.terms <- c(f@data.terms,temp[wt])
+  if (length(wt) > 0) {
+    f@data.terms <- c(f@data.terms,temp[wt])
+    w <- unlist(lapply(f@data.terms,class))
+    
+    if (".grouping" %in% w) {
+      wt <- f@data.terms[which(w == ".grouping")]
+      ng <- sapply(wt,function(x) x@group.var)
+      nf <- .excludeVector(nf,ng)
+      nFact <- .excludeVector(nFact,ng)
+    }
+    #---
+    if ('.time' %in% w) {
+      wt <- f@data.terms[which(w == ".time")]
+      nt <- sapply(wt,function(x) as.character(x@terms[1]))
+      nf <- .excludeVector(nf,nt)
+      nFact <- .excludeVector(nFact,nt)
+    }
+    #---
+    if ('.Info' %in% w) {
+      wt <- f@data.terms[which(w == ".Info")]
+      ni <- sapply(wt,function(x) as.character(x@names))
+      nf <- .excludeVector(nf,ni)
+      nFact <- .excludeVector(nFact,ni)
+    }
+  }
+  #-----
+  if (!is.null(f@model.terms)) {
+    w <- unlist(lapply(f@model.terms,class))
+    if ('.factor' %in% w) {
+      wi <- which(w == '.factor')
+      for (i in wi) {
+        w <- as.character(f@model.terms[[i]]@x)
+        w <- .excludeVector(w,'+')
+        nFact <- unique(c(nFact,w))
+        if (is.factor(data[,w])) f@model.terms[[i]]@levels <- levels(data[,w])
+        else f@model.terms[[i]]@levels <- sort(unique(as.character(data[,w])))
+      }
+    }
+  }
+  
+  nf <- .excludeVector(nf,nFact)
+  #----
   wt <- which(w %in% c('.selectFrame'))
   if (length(wt) > 0) {
     for (i in wt) {
@@ -587,6 +690,11 @@
       else f@model.terms <- c(f@model.terms,temp[wt])
     }
   }
+  #-----
+  #nall <- .excludeVector(nall,nxy)
+  
+  
+  f@vars <- new('.variables',names=c(nf,nFact),params=.getDataParams(data,nf))
   f
 }
 #-----------
