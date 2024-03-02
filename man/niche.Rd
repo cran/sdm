@@ -6,6 +6,10 @@
 \alias{niche,RasterStackBrick,sdmdata-method}
 \alias{niche,sdmdata,ANY-method}
 \alias{plot,.nicheRaster-method}
+\alias{plot,.nicheSpatRaster-method}
+\alias{niche,SpatRaster,SpatRaster-method}
+\alias{niche,SpatRaster,SpatVector-method}
+\alias{niche,SpatRaster,sdmdata-method}
 
 
 \title{Generate and plot Ecological Niche}
@@ -50,7 +54,7 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 \url{https://www.r-gis.net/}
 
-\url{https://www.biogeoinformatics.org}
+\url{https://www.biogeoinformatics.org/}
 }
 
 
@@ -59,7 +63,7 @@ Naimi, B., Araujo, M.B. (2016) sdm: a reproducible and extensible R platform for
 
 file <- system.file("external/species.shp", package="sdm") # get the location of the species data
 
-species <- shapefile(file) # read the shapefile
+species <- vect(file) # read the shapefile
 
 path <- system.file("external", package="sdm") # path to the folder contains the data
 
@@ -67,7 +71,7 @@ lst <- list.files(path=path,pattern='asc$',full.names = T) # list the name of th
 
 
 # stack is a function in the raster package, to read/create a multi-layers raster dataset
-preds <- stack(lst) # making a raster object
+preds <- rast(lst) # making a raster object
 
 names(preds) # 4 environmental variables are used!
 
@@ -79,7 +83,7 @@ d
 m <- sdm(Occurrence~.,data=d,methods=c('rf','glm','brt'))
 
 # ensemble using weighted averaging based on AUC statistic:    
-p1 <- ensemble(m, newdata=preds,filename='ens1.grd',setting=list(method='weighted',stat='AUC'))
+p1 <- ensemble(m, newdata=preds,setting=list(method='weighted',stat='AUC'))
 plot(p1, main='Habitat Suitability in Geographic Space')
 
 # Mapping Ecological Niche using selected two variables
