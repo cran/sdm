@@ -1,8 +1,8 @@
 Package: sdm
 Type: Package
 Title: Species Distribution Modelling
-Version: 1.2-32
-Date: 2024-03-02
+Version: 1.2-40
+Date: 2024-05-02
 Author: Babak Naimi, Miguel B. Araujo
 Maintainer: Babak Naimi <naimi.b@gmail.com>
 Depends: methods, R (>= 3.5.0), terra
@@ -17,6 +17,6 @@ License: GPL (>= 3)
 URL: https://www.biogeoinformatics.org
 VignetteBuilder: R.rsp
 NeedsCompilation: no
-Packaged: 2024-03-02 16:31:58 UTC; naimi001
+Packaged: 2024-05-02 00:42:51 UTC; naimi001
 Repository: CRAN
-Date/Publication: 2024-03-02 17:00:02 UTC
+Date/Publication: 2024-05-02 02:30:02 UTC
