@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  Jan 2024
-# Version 2.5
+# Date (last update):  Jan. 2025
+# Version 2.7
 # Licence GPL v3
 
 setMethod ('show' , 'sdmdata',
@@ -25,7 +25,7 @@ setMethod ('show' , 'sdmdata',
              hasTest <- 'test' %in% .getGroupNames(object,levels=TRUE)
              hasTrain <- 'train' %in% .getGroupNames(object,levels=TRUE)
              cat('type                                  : ', if (length(typ) > 3) paste(c(typ[1:3],'...'),collapse=', ') else paste(typ,collapse=', '), '\n')
-             cat('has independet test data?             : ' , hasTest, '\n')
+             cat('has independent test data?             : ' , hasTest, '\n')
              if (hasTrain) {
                cat('number of records                     : ', if (hasTest) paste('train-> ',length(.getGroupIndex(object,'train')),"; ",'test-> ',length(.getGroupIndex(object,'test')),sep='') else length(.getSpeciesIndex(object)),'\n')
              } else
@@ -411,4 +411,33 @@ setMethod ('show' , '.pcaObject',
 )
 #-----------
 
+
+
+setMethod ('show' , 'sdmEvaluate',
+           function ( object ) {
+             cat('class                                 :' , class(object), '\n')
+             cat('===========================================================','\n')
+             cat('number of records                     : ' , length(object@observed) , '\n')
+             cat('----------------------------------------------','\n')
+             cat('Evaluation metrics (threshold_Independent)...                          \n')
+             cat('----------------------------------------------','\n')
+             print(object@statistics)
+             cat('----------------------------------------------','\n')
+             if (!is.null(object@threshold_based)) {
+               cat('Threshold_based metrics (part of the table is printed here...)\n')
+               cat('----------------------------------------------','\n')
+               print(object@threshold_based[c(1,2,4,13,14),c(1,2,3,4,5,6,7)])
+               #for ( i in c())
+               cat('=============================================================','\n')
+             }
+             
+           }
+)
+#-----------
+# paste(colnames(e@threshold_based[1,c(2,3,4,5,6,7)]),collapse = ' | ')
+# paste(e@threshold_based[2,1],'   |  ',paste(round(as.numeric(e@threshold_based[2,c(2,3,4,5,6,7)]),3),collapse = '   | '),'| ...')
+# 
+# .w <- length(strsplit(e@threshold_based[2,1],'')[[1]])
+# paste(c(rep(' ',14-.w),'|'),collapse = '')
+# c("Criteria  |  thr.    |  sen.   |  spe.   |   TSS   |   MCC   |   F1  | ...")
 

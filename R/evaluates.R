@@ -1,6 +1,6 @@
 # Author: Babak Naimi, naimi.b@gmail.com
-# Date (last update):  June 2024
-# Version 2.4
+# Date (last update):  Jan. 2025
+# Version 2.6
 # Licence GPL v3
 #--------
 
@@ -250,6 +250,71 @@
   o <- o - p
   mean(abs(o))
 }
+#-----------
+
+
+# computation part of CBI (continuous boyce index):
+.cbi <- function(x,pr,wi,wh,method='spearman') {
+  
+  .nx <- length(x) # number of presence points
+  .ny <- length(pr) # number of background points
+  
+  Fi <- rep(NA,length(wi))
+  
+  for (i in seq_along(wi)) {
+    pi <- sum(as.numeric(x >= wi[i] & x <= wh[i])) / .nx
+    ei <- sum(as.numeric(pr >= wi[i] & pr <= wh[i])) / .ny
+    Fi[i] <- pi / ei
+  }
+  #-------
+  .msuit <- (wi + wh) / 2 # mean suitability for each bin!
+  
+  
+  .keep <- which(Fi != "NaN" & !is.na(Fi) & !is.infinite(Fi))
+  #Fi <- Fi[.keep]
+  .keep <- .keep[which(Fi[.keep] != c(Fi[.keep][-1],TRUE))]
+  .stat <- cor(.msuit[.keep],Fi[.keep],method = method,use='complete.obs')
+  
+  list(CBI=.stat,Fi=Fi[.keep],suitability=.msuit)
+}
+#-----------
+.boyce <- function(obs, pr, win=NULL,n=101,method='spearman') {
+  # continuous boyce index
+  # obs: presence-background data (background should represent the whole study area)
+  # pr: predicted suitability corresponding to obs
+  # win: windows width (default: NULL -> 10% of range)
+  # n: number of bins (default: 101 )
+  # correlation method (default: "spearman")
+  #-------------
+  
+  
+  if (length(obs) != length(pr)) stop('lengths of obs and pr are not the same!')
+  
+  if (length(which(pr > 0 & pr < 1)) == 0) stop('"pr" should be a vector of predicted probabilities!')
+  
+  
+  
+  .min <- min(pr,na.rm = TRUE)
+  .max <- max(pr, na.rm = TRUE)
+  
+  if (is.null(win)) {
+    win <- (.max - .min) / 10
+  }
+  #------
+  if (length(win) > 1 || win > 0.9 || win < 0) {
+    win <- (.max - .min) / 10
+    warning(paste0('the selected value for "win" seems not reasonable and it is ignored; default (',round(win,4),') is replaced!'))
+  }
+  #--------
+  wi <- seq(.min, .max - win, length.out = n)
+  wh <- wi + win
+  #----------------
+  .x <- pr[obs == 1] # probability of presence locations
+  
+  .cbi(.x,pr,wi,wh,method=method)
+}
+
+
 
 #-----------
 # 
@@ -592,6 +657,77 @@ setMethod('evaluates', signature(x='sdmdata',p='SpatRaster'),
             p <- extract(p,d[,colnames(coords(x))],ID=FALSE)[,1]
             
             evaluates(o, p, distribution = distribution)
+          }
+)
+#------------
+setMethod('evaluates', signature(x='sdmModels',p='SpatRaster'),
+          function(x, p,distribution,wtest=NULL,...) {
+            if (missing(distribution)) {
+              if (x@data@species[[1]]@type %in% c('Abundance')) distribution <- 'poisson'
+              else if (x@data@species[[1]]@type %in% c('Numerical')) distribution <- 'gaussian'
+              else if (x@data@species[[1]]@type %in% c('Presence-Absence','Presence-Background')) distribution <- 'binomial'
+              else distribution <- NULL
+            }
+            
+            if (missing(wtest)) wtest <- NULL
+            
+            evaluates(x@data,p,distribution=distribution,wtest=wtest,...)
+          }
+)
+
+#-------------
+setMethod('evaluates', signature(x='sdmModels',p='missing'),
+          function(x, p,distribution,wtest=NULL,species=NULL,...) {
+            if (missing(distribution)) {
+              if (x@data@species[[1]]@type %in% c('Abundance')) distribution <- 'poisson'
+              else if (x@data@species[[1]]@type %in% c('Numerical')) distribution <- 'gaussian'
+              else if (x@data@species[[1]]@type %in% c('Presence-Absence','Presence-Background')) distribution <- 'binomial'
+              else distribution <- NULL
+            }
+            
+            if (missing(wtest)) wtest <- NULL
+            
+            
+            if (missing(species)) species <- NULL
+            
+            
+            n <- x@data@species.names
+            
+            if (length(n) > 1) {
+              if (is.null(species)) {
+                warning('multiple species are available in the model and the species is not specified in the "species" argument. The first species is considered!')
+                n <- n[1]
+              } else {
+                if (length(species) > 1) stop('only one species should be specified in the "species" argument!')
+                else {
+                  if (is.numeric(species)) {
+                    if (length(n) < species) stop('The specified species is not available (species argument)!')
+                    else n <- n[species]
+                  } else if (is.character(species)) {
+                    w <- which(n == species)
+                    if (length(w) == 1) n <- n[w]
+                    else stop('The specified species (in the "species" argument) is not available!')
+                  } else stop('"species" should be a character or numeric!')
+                }
+              }
+            }
+            #---------
+            en <- as.data.frame(x@data,sp=n)
+            
+            obs <- en[,n]
+            
+            en <- ensemble(x, en,...)
+            if (length(x@data@species.names) > 1) {
+              w <- which(grepl(n,colnames(en)))
+              if (length(w) == 1) en <- en[,w]
+              else {
+                w <- which(x@data@species.names == n)
+                en <- en[,w]
+              }
+            } else en <- en[,1]
+            
+            evaluates(obs,en, distribution = distribution)
+            
           }
 )
 
